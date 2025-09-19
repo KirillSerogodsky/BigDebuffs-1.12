@@ -1,6 +1,7 @@
 -- BigDebuffs by Jordon
 
 local addonName, addon = BigDebuffsAddonName, BigDebuffsAddon
+local tgetn, sfind, sgsub = table.getn, string.find, string.gsub
 
 local UnitChannelInfo = C_UnitChannelInfo
 local GetSpellTexture = C_GetSpellTexture
@@ -169,11 +170,11 @@ local classDispel = {
         Disease = true,
         Poison = true,
         -- Shamans 'Cleanse Spirit' restoration talent
-        Curse = function() return IsUsableSpell(GetSpellInfo(51886)) end
+        Curse = function() return C_IsUsableSpell(C_GetSpellInfo(51886)) end
     },
     WARLOCK = {
         -- Felhunter's Devour Magic or Doomguard's Dispel Magic
-        Magic = function() return IsUsableSpell(GetSpellInfo(19736)) or IsUsableSpell(GetSpellInfo(19476)) end,
+        Magic = function() return C_IsUsableSpell(C_GetSpellInfo(19736)) or C_IsUsableSpell(C_GetSpellInfo(19476)) end,
     },
 }
 local _, class = UnitClass("player")
@@ -188,7 +189,7 @@ local units = addon.Units
 
 local unitsWithRaid = {}
 
-for i = 1, #units do
+for i = 1, tgetn(units) do
     table.insert(unitsWithRaid, units[i])
 end
 
@@ -208,25 +209,24 @@ local GetAnchor = {
                 break
             end
         end
-
-        if unit and (unit:match("party") or unit:match("player")) then
-            local unitGUID = UnitGUID(unit)
+        if unit and (sfind(unit, "party") or sfind(unit, "player")) then
+            local unitGUID = C_UnitGUID(unit)
             for i = 1, 5, 1 do
                 local elvUIFrame = _G["ElvUF_PartyGroup1UnitButton" .. i]
                 if elvUIFrame and elvUIFrame:IsVisible() and elvUIFrame.unit then
-                    if unitGUID == UnitGUID(elvUIFrame.unit) then
+                    if unitGUID == C_UnitGUID(elvUIFrame.unit) then
                         return elvUIFrame
                     end
                 end
             end
         end
 
-        if unit and (unit:match("arena") or unit:match("arena")) then
-            local unitGUID = UnitGUID(unit)
+        if unit and (sfind(unit, "arena") or sfind(unit, "arena")) then
+            local unitGUID = C_UnitGUID(unit)
             for i = 1, 5, 1 do
                 local elvUIFrame = _G["ElvUF_Arena" .. i]
                 if elvUIFrame and elvUIFrame:IsVisible() and elvUIFrame.unit then
-                    if unitGUID == UnitGUID(elvUIFrame.unit) then
+                    if unitGUID == C_UnitGUID(elvUIFrame.unit) then
                         return elvUIFrame
                     end
                 end
@@ -246,12 +246,12 @@ local GetAnchor = {
             end
         end
 
-        if unit and (unit:match("party") or unit:match("player")) then
-            local unitGUID = UnitGUID(unit)
+        if unit and (sfind(unit, "party") or sfind(unit, "player")) then
+            local unitGUID = C_UnitGUID(unit)
             for i = 1, 5, 1 do
                 local oUFFrame = _G["oUF_PartyGroup1UnitButton" .. i]
                 if oUFFrame and oUFFrame:IsVisible() and oUFFrame.unit then
-                    if unitGUID == UnitGUID(oUFFrame.unit) then
+                    if unitGUID == C_UnitGUID(oUFFrame.unit) then
                         return oUFFrame
                     end
                 end
@@ -259,12 +259,12 @@ local GetAnchor = {
             return
         end
 
-        if unit and (unit:match("arena") or unit:match("arena")) then
-            local unitGUID = UnitGUID(unit)
+        if unit and (sfind(unit, "arena") or sfind(unit, "arena")) then
+            local unitGUID = C_UnitGUID(unit)
             for i = 1, 5, 1 do
                 local oUFFrame = _G["oUF_Arena" .. i]
                 if oUFFrame and oUFFrame:IsVisible() and oUFFrame.unit then
-                    if unitGUID == UnitGUID(oUFFrame.unit) then
+                    if unitGUID == C_UnitGUID(oUFFrame.unit) then
                         return oUFFrame
                     end
                 end
@@ -321,9 +321,9 @@ local GetAnchor = {
             end
         end
 
-        if unit and (unit:match("party") or unit:match("player")) then
+        if unit and (sfind(unit, "party") or sfind(unit, "player")) then
             if Cell then
-                local guid = UnitGUID(unit)
+                local guid = C_UnitGUID(unit)
                 local frame = Cell.funcs:GetUnitButtonByGUID(guid)
                 if frame then
                     return frame, frame, true
@@ -472,7 +472,7 @@ local anchors = {
         units = {
             player = "PlayerPortrait",
             pet = "PetPortrait",
-            target = "TargetFramePortrait",
+            target = "TargetPortrait",
             focus = "FocusFramePortrait",
             party1 = "PartyMemberFrame1Portrait",
             party2 = "PartyMemberFrame2Portrait",
@@ -499,8 +499,8 @@ function BigDebuffs:OnInitialize()
             roots = self.db.profile.raidFrames.roots
         }
     end
-    for i = 1, #units do
-        local key = units[i]:gsub("%d", "")
+    for i = 1, tgetn(units) do
+        local key = sgsub(units[i], "%d", "")
         if type(self.db.profile.unitFrames[key]) == "boolean" then
             self.db.profile.unitFrames[key] = {
                 enabled = self.db.profile.unitFrames[key],
@@ -549,7 +549,7 @@ end
 
 local function HideBigDebuffs(frame)
     if not frame.BigDebuffs then return end
-    for i = 1, #frame.BigDebuffs do
+    for i = 1, tgetn(frame.BigDebuffs) do
         frame.BigDebuffs[i]:Hide()
     end
 end
@@ -562,14 +562,14 @@ function BigDebuffs:Refresh()
     for unit, frame in pairs(self.UnitFrames) do
         frame:Hide()
         frame.current = nil
-        frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
-        frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
+        -- TODO frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
+        -- TODO frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
         self:UNIT_AURA(unit)
     end
 end
 
 function BigDebuffs:AttachUnitFrame(unit)
-    if InCombatLockdown() then return end
+    if C_InCombatLockdown() then return end
 
     local frame = self.UnitFrames[unit]
     local frameName = addonName .. unit .. "UnitFrame"
@@ -577,11 +577,11 @@ function BigDebuffs:AttachUnitFrame(unit)
     if not frame then
         frame = CreateFrame("Button", frameName, UIParent, "BigDebuffsUnitFrameTemplate")
         self.UnitFrames[unit] = frame
-        frame:SetScript("OnEvent", function() self:UNIT_AURA(unit) end)
-        frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
-        frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
+        frame:SetScript("OnEvent", function() if (arg1 == unit) then self:UNIT_AURA(arg1) end end)
+        -- TODO frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
+        -- TODO frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
         frame.icon:SetDrawLayer("BORDER")
-        frame:RegisterUnitEvent("UNIT_AURA", unit)
+        frame:RegisterEvent("UNIT_AURA")
         frame:RegisterForDrag("LeftButton")
         frame:SetMovable(true)
         frame.unit = unit
@@ -598,7 +598,7 @@ function BigDebuffs:AttachUnitFrame(unit)
     frame.anchor = nil
     frame.blizzard = nil
 
-    local config = self.db.profile.unitFrames[unit:gsub("%d", "")]
+    local config = self.db.profile.unitFrames[sgsub(unit, "%d", "")]
 
     if config.anchor == "auto" then
         -- Find a frame to attach to
@@ -698,12 +698,16 @@ function BigDebuffs:AttachUnitFrame(unit)
             if frame.blizzard then
                 frame:ClearAllPoints()
                 frame:SetPoint("CENTER", frame.anchor, -1, -1)
-                local W, H = frame.anchor:GetSize()
+                local W, H = frame.anchor:GetWidth(), frame.anchor:GetHeight()
                 if ( unit == "player" or unit == "target" or unit == "focus" ) then
                     W = W - 5
                     H = H - 5
                 end
-                frame:SetSize(W-5, H-5)
+                frame:SetWidth(W - 5)
+                frame:SetHeight(H - 5)
+                if (W / 36 > 0) then
+                    frame.cooldown:SetScale(W / 36)
+                end
             else
                 frame:SetAllPoints(frame.anchor)
             end
@@ -716,7 +720,8 @@ function BigDebuffs:AttachUnitFrame(unit)
         if not self.db.profile.unitFrames[unit] then self.db.profile.unitFrames[unit] = {} end
 
         if self.db.profile.unitFrames[unit].position then
-            frame:SetPoint(unpack(self.db.profile.unitFrames[unit].position))
+            local p = self.db.profile.unitFrames[unit].position
+            frame:SetPoint(p[1],p[2],p[3],p[4],p[5])
         else
             -- No saved position, anchor to the blizzard position
             if WOW_PROJECT_ID_RCE ~= WOW_PROJECT_CLASSIC then LoadAddOn("Blizzard_ArenaUI") end
@@ -724,12 +729,23 @@ function BigDebuffs:AttachUnitFrame(unit)
             frame:SetPoint("CENTER", relativeFrame, "CENTER")
         end
 
-        frame:SetSize(config.size, config.size)
+        frame:SetWidth(config.size)
+        frame:SetHeight(config.size)
+        if (config.size / 36 > 0) then
+            frame.cooldown:SetScale(config.size / 36)
+        end
     end
 end
 
 function BigDebuffs:SaveUnitFramePosition(frame)
-    self.db.profile.unitFrames[frame.unit].position = { frame:GetPoint() }
+    local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
+    self.db.profile.unitFrames[frame.unit].position = {
+        point,
+        relativeTo and relativeTo:GetName() or nil,
+        relativePoint,
+        xOfs,
+        yOfs
+    }
 end
 
 function BigDebuffs:Test()
@@ -791,7 +807,7 @@ local function UnitBuffByName(unit, name)
 end
 
 function BigDebuffs:COMBAT_LOG_EVENT_UNFILTERED(Self, ...)
-    local _, event, _, _, _, _, _, destGUID, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo(...)
+    local _, event, _, _, _, _, _, destGUID, _, _, _, spellId, spellName = CombatLogGetCurrentEventInfo(unpack(arg))
 
     -- SPELL_INTERRUPT doesn't fire for some channeled spells
     if event ~= "SPELL_INTERRUPT" and event ~= "SPELL_CAST_SUCCESS" then return end
@@ -802,9 +818,9 @@ function BigDebuffs:COMBAT_LOG_EVENT_UNFILTERED(Self, ...)
     if spellType ~= "interrupts" then return end
 
     -- Find unit
-    for i = 1, #unitsWithRaid do
+    for i = 1, tgetn(unitsWithRaid) do
         local unit = unitsWithRaid[i]
-        if destGUID == UnitGUID(unit) and (event ~= "SPELL_CAST_SUCCESS" or
+        if destGUID == C_UnitGUID(unit) and (event ~= "SPELL_CAST_SUCCESS" or
             (UnitChannelInfo and select(7, UnitChannelInfo(unit)) == false))
         then
             local duration = spell.parent and self.Spells[spell.parent].duration or spell.duration
@@ -827,14 +843,14 @@ end
 
 function BigDebuffs:UNIT_AURA_ALL_UNITS()
     local self = BigDebuffs
-    for i = 1, #unitsWithRaid do
+    for i = 1, tgetn(unitsWithRaid) do
         local unit = unitsWithRaid[i]
 
         if self.AttachedFrames[unit] then
            self:ShowBigDebuffs(self.AttachedFrames[unit])
         end
 
-        if not unit:match("^raid") then
+        if not sfind(unit, "^raid") then
             self:UNIT_AURA(unit)
         end
     end
@@ -923,7 +939,7 @@ local function CompactUnitFrame_UpdateAll_Hook(frame)
     if frame:IsForbidden() then return end
     local name = frame:GetName()
     if not name or not name:match("^Compact") then return end
-    if InCombatLockdown() and not frame.BigDebuffs then
+    if C_InCombatLockdown() and not frame.BigDebuffs then
         if not pending[frame] then pending[frame] = true end
 --  if not IsInGroup() or GetNumGroupMembers() > 5 then return end
     else
@@ -939,7 +955,7 @@ function BigDebuffs:PLAYER_REGEN_ENABLED()
 end
 
 function BigDebuffs:IsPriorityDebuff(id)
-    for i = 1, #BigDebuffs.PriorityDebuffs do
+    for i = 1, tgetn(BigDebuffs.PriorityDebuffs) do
         if id == BigDebuffs.PriorityDebuffs[i] then
             return true
         end
@@ -956,7 +972,7 @@ function BigDebuffs:IsDispellable(unit, dispelType)
             unit == "player" and
             (dispelType == "Poison" or dispelType == "Disease")
         then
-            return IsUsableSpell("Stoneform")
+            return C_IsUsableSpell("Stoneform")
         end
 
         return self.dispelTypes[dispelType]
@@ -1043,15 +1059,15 @@ end
 --classic and BigDebuffs:ShowBigDebuffs()
 
 local CompactUnitFrame_UtilSetDebuff = function(debuffFrame, unit, index, filter, isBossAura, isBossBuff, ...)
-    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or UnitDebuff
+    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or C_UnitDebuff
     -- make sure you are using the correct index here!
     --isBossAura says make this look large.
     --isBossBuff looks in HELPFULL auras otherwise it looks in HARMFULL ones
-    local name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = ...;
+    local name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = unpack(arg);
 
     if index == -1 then
         -- it's an interrupt
-        local spell = BigDebuffs.units[UnitGUID(unit)]
+        local spell = BigDebuffs.units[C_UnitGUID(unit)]
         spellId = spell.spellId
         icon = GetSpellTexture(spellId)
         count = 1
@@ -1062,7 +1078,7 @@ local CompactUnitFrame_UtilSetDebuff = function(debuffFrame, unit, index, filter
             -- for backwards compatibility - this functionality will be removed in a future update
             if unit then
                 if (isBossBuff) then
-                    name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = UnitBuff(unit,
+                    name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = C_UnitBuff(unit,
                         index, filter);
                 else
                     name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = UnitDebuff(unit
@@ -1296,7 +1312,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
         return
     end
 
-    local UnitDebuff = self.test and UnitDebuffTest or UnitDebuff
+    local UnitDebuff = self.test and UnitDebuffTest or C_UnitDebuff
 
     HideBigDebuffs(frame)
 
@@ -1328,7 +1344,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
             -- Set warning debuff
             if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
                 local k
-                for j = 1, #self.WarningDebuffs do
+                for j = 1, tgetn(self.WarningDebuffs) do
                     if id == self.WarningDebuffs[j] and
                         self.db.profile.raidFrames.warningList[id] and
                         not friendlySmokeBomb and
@@ -1344,7 +1360,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
     end
 
     -- check for interrupts
-    local guid = UnitGUID(frame.displayedUnit)
+    local guid = C_UnitGUID(frame.displayedUnit)
     if guid and self.units[guid] and self.units[guid].expires and self.units[guid].expires > GetTime() then
         local spellId = self.units[guid].spellId
         local size = self:GetDebuffSize(spellId, false)
@@ -1354,7 +1370,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
         end
     end
 
-    if #debuffs > 0 then
+    if tgetn(debuffs) > 0 then
         -- insert the warning debuff if it exists and we have a big debuff
         if big and warning then
             local size = self.db.profile.raidFrames.warning
@@ -1391,7 +1407,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
             CompactUnitFrame_HideAllDebuffs(frame)
         end
 
-        for i = 1, #debuffs do
+        for i = 1, tgetn(debuffs) do
             if index <= self.db.profile.raidFrames.maxDebuffs or debuffs[i][1] == warning then
                 if not frame.BigDebuffs[index] then break end
                 frame.BigDebuffs[index].baseSize = frame:GetHeight() * debuffs[i][2] * 0.01
@@ -1412,10 +1428,10 @@ end
 
 function BigDebuffs:UNIT_AURA(unit)
     if not self.db.profile.unitFrames.enabled or
-        not self.db.profile.unitFrames[unit:gsub("%d", "")].enabled
+        not self.db.profile.unitFrames[sgsub(unit, "%d", "")].enabled
     then
         return
-    elseif (GetNumGroupMembers() > 5 and unit:match("party")) then
+    elseif (GetNumPartyMembers() > 5 and sfind(unit, "party")) then
         local frame = self.UnitFrames[unit]
         if ( frame and frame.current ) then
             frame:Hide()
@@ -1430,7 +1446,7 @@ function BigDebuffs:UNIT_AURA(unit)
     local frame = self.UnitFrames[unit]
     if not frame then return end
 
-    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or UnitDebuff
+    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or C_UnitDebuff
 
     local now = GetTime()
     local left, priority, duration, expires, icon, debuff, buff, interrupt = 0, 0
@@ -1457,7 +1473,7 @@ function BigDebuffs:UNIT_AURA(unit)
         end
 
         -- Check buffs
-        _, n, _, _, d, e, caster, _, _, id = UnitBuff(unit, i)
+        _, n, _, _, d, e, caster, _, _, id = C_UnitBuff(unit, i)
         if id then
             if self.Spells[id] then
                 local p = self:GetAuraPriority(id)
@@ -1477,7 +1493,7 @@ function BigDebuffs:UNIT_AURA(unit)
     end
 
     -- Check for interrupt
-    local guid = UnitGUID(unit)
+    local guid = C_UnitGUID(unit)
     if guid and self.units[guid] and self.units[guid].expires and self.units[guid].expires > now then
         local spell = self.units[guid]
         local spellId = spell.spellId
@@ -1513,7 +1529,7 @@ function BigDebuffs:UNIT_AURA(unit)
             end
         end
 
-        CooldownFrame_Set(frame.cooldown, expires - duration, duration, true)
+        -- TODO CooldownFrame_SetTimer(frame.cooldown, GetTime(), duration, 1)
         frame:Show()
         --frame.cooldown:SetSwipeColor(0, 0, 0, 0.6)
 
@@ -1563,7 +1579,7 @@ function BigDebuffs:ADDON_LOADED(self, addon)
 end
 
 function BigDebuffs:PLAYER_ENTERING_WORLD()
-    for i = 1, #units do
+    for i = 1, tgetn(units) do
         self:UNIT_AURA(units[i])
     end
 end

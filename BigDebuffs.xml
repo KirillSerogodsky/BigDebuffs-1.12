@@ -8,9 +8,9 @@
     <Button name="BigDebuffsDebuffTemplate" inherits="CompactDebuffTemplate" virtual="true">
         <Scripts>
             <OnEnter>
-                GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 0, 0);
-                if self.spellId and self.spellId ~= true then
-                    GameTooltip:SetSpellByID(self.spellId);
+                GameTooltip:SetOwner(this, "ANCHOR_RIGHT", 0, 0);
+                if this.spellId and this.spellId ~= true then
+                    GameTooltip:SetSpellByID(this.spellId);
                 end
             </OnEnter>
             <OnLeave>
@@ -18,6 +18,7 @@
             </OnLeave>
         </Scripts>
     </Button>
+    <!-- no dontSavePosition -->
     <Button name="BigDebuffsUnitFrameTemplate" parent="UIParent" hidden="true" dontSavePosition="true" virtual="true">
         <Size>
             <AbsDimension x="36" y="36"/>
@@ -29,6 +30,7 @@
             <Layer level="BACKGROUND">
                 <Texture name="$parentIcon" parentKey="icon"/>
             </Layer>
+            <!-- no textureSubLevel -->
             <Layer level="OVERLAY" textureSubLevel="1">
                 <FontString name="$parentName" parentKey="Name" inherits="BigDebuffsFont">
                     <Size>
@@ -48,34 +50,43 @@
             </Layer>
         </Layers>
         <Frames>
-            <Cooldown name="$parentCooldown" inherits="CooldownFrameTemplate" parentKey="cooldown" reverse="true" drawBling="false" drawEdge="false" hidden="true">
+            <!-- no reverse, drawBling, drawEdge -->
+            <Model name="$parentCooldown" inherits="CooldownFrameTemplate" parentKey="cooldown" reverse="true" drawBling="false" drawEdge="false" hidden="true">
                 <Size x="36" y="36"/>
                 <Anchors>
                     <Anchor point="CENTER" x="0" y="-1"/>
                 </Anchors>
-            </Cooldown>
+            </Model>
         </Frames>
         <Scripts>
+            <OnLoad>
+                <!-- parentKey's -->
+                this.icon = getglobal(this:GetName() .. "Icon")
+                this.cooldown = getglobal(this:GetName() .. "Cooldown")
+                this.Name = getglobal(this:GetName() .. "Name")
+            </OnLoad>
             <OnDragStart>
-                self:StartMoving()
+                this:StartMoving()
             </OnDragStart>
             <OnDragStop>
-                self:StopMovingOrSizing()
-                BigDebuffs:SaveUnitFramePosition(self)
+                this:StopMovingOrSizing()
+                <!-- TODO game just crash 
+                BigDebuffs:SaveUnitFramePosition(this) -->
             </OnDragStop>
             <OnUpdate>
-				if ( self:IsMouseOver() and BigDebuffs.db.profile.unitFrames.tooltips ) then
-					GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 0, 0);
-					if self.interrupt then
-						GameTooltip:SetSpellByID(self.interrupt)
-					elseif self.buff then
-						GameTooltip:SetUnitBuff(self.unit, self:GetID());
+				<!-- TODO no IsMouseOver
+                if ( this:IsMouseOver() and BigDebuffs.db.profile.unitFrames.tooltips ) then
+					GameTooltip:SetOwner(this, "ANCHOR_RIGHT", 0, 0);
+					if this.interrupt then
+						GameTooltip:SetSpellByID(this.interrupt)
+					elseif this.buff then
+						GameTooltip:SetUnitBuff(this.unit, this:GetID());
 					else
-						GameTooltip:SetUnitDebuff(self.unit, self:GetID());
+						GameTooltip:SetUnitDebuff(this.unit, this:GetID());
 					end
-				elseif GameTooltip:IsOwned(self) then
+				elseif GameTooltip:IsOwned(this) then
 					GameTooltip:Hide();
-				end
+				end -->
 			</OnUpdate>
         </Scripts>
     </Button>
