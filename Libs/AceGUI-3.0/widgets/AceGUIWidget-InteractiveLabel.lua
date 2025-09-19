@@ -1,26 +1,33 @@
 --[[-----------------------------------------------------------------------------
 InteractiveLabel Widget
 -------------------------------------------------------------------------------]]
-local Type, Version = "InteractiveLabel", 21
+local Type, Version = "InteractiveLabel", 20
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
 -- Lua APIs
-local select, pairs = select, pairs
+local pairs = pairs
+
+-- WoW APIs
+local CreateFrame, UIParent = CreateFrame, UIParent
+
+-- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
+-- List them here for Mikk's FindGlobals script
+-- GLOBALS: GameFontHighlightSmall
 
 --[[-----------------------------------------------------------------------------
 Scripts
 -------------------------------------------------------------------------------]]
-local function Control_OnEnter(frame)
-	frame.obj:Fire("OnEnter")
+local function Control_OnEnter()
+	this.obj:Fire("OnEnter")
 end
 
-local function Control_OnLeave(frame)
-	frame.obj:Fire("OnLeave")
+local function Control_OnLeave()
+	this.obj:Fire("OnLeave")
 end
 
-local function Label_OnClick(frame, button)
-	frame.obj:Fire("OnClick", button)
+local function Label_OnClick()
+	this.obj:Fire("OnClick", 1, arg1)
 	AceGUI:ClearFocus()
 end
 
@@ -37,14 +44,13 @@ local methods = {
 
 	-- ["OnRelease"] = nil,
 
-	["SetHighlight"] = function(self, ...)
-		self.highlight:SetTexture(...)
+	["SetHighlight"] = function(self, a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
+		self.highlight:SetTexture(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
 	end,
 
-	["SetHighlightTexCoord"] = function(self, ...)
-		local c = select("#", ...)
-		if c == 4 or c == 8 then
-			self.highlight:SetTexCoord(...)
+	["SetHighlightTexCoord"] = function(self, a1,a2,a3,a4,a5,a6,a7,a8)
+		if a4 or a8 then
+			self.highlight:SetTexCoord(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10)
 		else
 			self.highlight:SetTexCoord(0, 1, 0, 1)
 		end

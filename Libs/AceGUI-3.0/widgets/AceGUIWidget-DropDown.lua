@@ -1,41 +1,24 @@
---[[ $Id: AceGUIWidget-DropDown.lua 1209 2019-06-24 21:01:01Z nevcairiel $ ]]--
+--[[ $Id: AceGUIWidget-DropDown.lua 1116 2014-10-12 08:15:46Z nevcairiel $ ]]--
 local AceGUI = LibStub("AceGUI-3.0")
+
+local AceCore = LibStub("AceCore-3.0")
 
 -- Lua APIs
 local min, max, floor = math.min, math.max, math.floor
-local select, pairs, ipairs, type, tostring = select, pairs, ipairs, type, tostring
-local tsort = table.sort
+local pairs, ipairs, type = pairs, ipairs, type
+local tsort, tinsert, tgetn, tsetn = table.sort, table.insert, table.getn, table.setn
 
 -- WoW APIs
 local PlaySound = PlaySound
 local UIParent, CreateFrame = UIParent, CreateFrame
-local _G = _G
+local _G = AceCore._G
 
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
 -- List them here for Mikk's FindGlobals script
 -- GLOBALS: CLOSE
 
-local function fixlevels(parent,...)
-	local i = 1
-	local child = select(i, ...)
-	while child do
-		child:SetFrameLevel(parent:GetFrameLevel()+1)
-		fixlevels(child, child:GetChildren())
-		i = i + 1
-		child = select(i, ...)
-	end
-end
-
-local function fixstrata(strata, parent, ...)
-	local i = 1
-	local child = select(i, ...)
-	parent:SetFrameStrata(strata)
-	while child do
-		fixstrata(strata, child, child:GetChildren())
-		i = i + 1
-		child = select(i, ...)
-	end
-end
+local fixlevels = AceGUI.fixlevels
+local fixstrata = AceGUI.fixstrata
 
 do
 	local widgetType = "Dropdown-Pullout"
@@ -76,15 +59,15 @@ do
 	end
 
 	-- See the note in Constructor() for each scroll related function
-	local function OnMouseWheel(this, value)
-		this.obj:MoveScroll(value)
+	local function OnMouseWheel()
+		this.obj:MoveScroll(arg1)
 	end
 
-	local function OnScrollValueChanged(this, value)
-		this.obj:SetScroll(value)
+	local function OnScrollValueChanged()
+		this.obj:SetScroll(arg1)
 	end
 
-	local function OnSizeChanged(this)
+	local function OnSizeChanged()
 		this.obj:FixScroll()
 	end
 
@@ -169,9 +152,9 @@ do
 
 	-- exported
 	local function AddItem(self, item)
-		self.items[#self.items + 1] = item
+		tinsert(self.items, item)
 
-		local h = #self.items * 16
+		local h = tgetn(self.items) * 16
 		self.itemFrame:SetHeight(h)
 		self.frame:SetHeight(min(h + 34, self.maxHeight)) -- +34: 20 for scrollFrame placement (10 offset) and +14 for item placement
 
@@ -204,7 +187,7 @@ do
 			height = height + 16
 		end
 		itemFrame:SetHeight(height)
-		fixstrata("TOOLTIP", frame, frame:GetChildren())
+		fixstrata("TOOLTIP", frame)
 		frame:Show()
 		self:Fire("OnOpen")
 	end
@@ -222,6 +205,7 @@ do
 			AceGUI:Release(item)
 			items[i] = nil
 		end
+		tsetn(items,0)
 	end
 
 	-- exported
@@ -356,30 +340,30 @@ end
 
 do
 	local widgetType = "Dropdown"
-	local widgetVersion = 34
+	local widgetVersion = 30
 
 	--[[ Static data ]]--
 
 	--[[ UI event handler ]]--
 
-	local function Control_OnEnter(this)
+	local function Control_OnEnter()
 		this.obj.button:LockHighlight()
 		this.obj:Fire("OnEnter")
 	end
 
-	local function Control_OnLeave(this)
+	local function Control_OnLeave()
 		this.obj.button:UnlockHighlight()
 		this.obj:Fire("OnLeave")
 	end
 
-	local function Dropdown_OnHide(this)
+	local function Dropdown_OnHide()
 		local self = this.obj
 		if self.open then
 			self.pullout:Close()
 		end
 	end
 
-	local function Dropdown_TogglePullout(this)
+	local function Dropdown_TogglePullout()
 		local self = this.obj
 		PlaySound("igMainMenuOptionCheckBoxOn") -- missleading name, but the Blizzard code uses this sound
 		if self.open then
@@ -430,17 +414,20 @@ do
 		self:SetText(text)
 	end
 
-	local function OnItemValueChanged(this, event, checked)
+	local function OnItemValueChanged(this, event, _, checked)
 		local self = this.userdata.obj
 
 		if self.multiselect then
-			self:Fire("OnValueChanged", this.userdata.value, checked)
+			self:Fire("OnValueChanged", 2, this.userdata.value, checked)
 			ShowMultiText(self)
 		else
 			if checked then
 				self:SetValue(this.userdata.value)
-				self:Fire("OnValueChanged", this.userdata.value)
+				self:Fire("OnValueChanged", 1, this.userdata.value)
+				this:SetValue(false)
 			else
+				self:SetValue(nil)
+				self:Fire("OnValueChanged", 1, nil)
 				this:SetValue(true)
 			end
 			if self.open then
@@ -459,7 +446,8 @@ do
 		pullout:SetCallback("OnClose", OnPulloutClose)
 		pullout:SetCallback("OnOpen", OnPulloutOpen)
 		self.pullout.frame:SetFrameLevel(self.frame:GetFrameLevel() + 1)
-		fixlevels(self.pullout.frame, self.pullout.frame:GetChildren())
+		local frame = self.pullout.frame
+		fixlevels(frame)
 
 		self:SetHeight(44)
 		self:SetWidth(200)
@@ -592,14 +580,6 @@ do
 
 	-- exported
 	local sortlist = {}
-	local function sortTbl(x,y)
-		local num1, num2 = tonumber(x), tonumber(y)
-		if num1 and num2 then -- numeric comparison, either two numbers or numeric strings
-			return num1 < num2
-		else -- compare everything else tostring'ed
-			return tostring(x) < tostring(y)
-		end
-	end
 	local function SetList(self, list, order, itemType)
 		self.list = list
 		self.pullout:Clear()
@@ -608,14 +588,15 @@ do
 
 		if type(order) ~= "table" then
 			for v in pairs(list) do
-				sortlist[#sortlist + 1] = v
+				tinsert(sortlist, v)
 			end
-			tsort(sortlist, sortTbl)
+			tsort(sortlist)
 
 			for i, key in ipairs(sortlist) do
 				AddListItem(self, key, list[key], itemType)
 				sortlist[i] = nil
 			end
+			tsetn(sortlist,0)
 		else
 			for i, key in ipairs(order) do
 				AddListItem(self, key, list[key], itemType)

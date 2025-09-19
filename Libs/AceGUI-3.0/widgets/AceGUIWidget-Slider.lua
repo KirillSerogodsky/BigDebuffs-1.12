@@ -2,13 +2,13 @@
 Slider Widget
 Graphical Slider, like, for Range values.
 -------------------------------------------------------------------------------]]
-local Type, Version = "Slider", 20
+local Type, Version = "Slider", 23
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
 -- Lua APIs
 local min, max, floor = math.min, math.max, math.floor
-local tonumber, pairs = tonumber, pairs
+local tonumber, pairs, format = tonumber, pairs, string.format
 
 -- WoW APIs
 local PlaySound = PlaySound
@@ -24,7 +24,7 @@ Support functions
 local function UpdateText(self)
 	local value = self.value or 0
 	if self.ispercent then
-		self.editbox:SetText(("%s%%"):format(floor(value * 1000 + 0.5) / 10))
+		self.editbox:SetText(format(("%s%%"),floor(value * 1000 + 0.5) / 10))
 	else
 		self.editbox:SetText(floor(value * 100 + 0.5) / 100)
 	end
@@ -33,8 +33,8 @@ end
 local function UpdateLabels(self)
 	local min, max = (self.min or 0), (self.max or 100)
 	if self.ispercent then
-		self.lowtext:SetFormattedText("%s%%", (min * 100))
-		self.hightext:SetFormattedText("%s%%", (max * 100))
+		self.lowtext:SetText(format("%s%%", (min * 100)))
+		self.hightext:SetText(format("%s%%", (max * 100)))
 	else
 		self.lowtext:SetText(min)
 		self.hightext:SetText(max)
@@ -44,25 +44,30 @@ end
 --[[-----------------------------------------------------------------------------
 Scripts
 -------------------------------------------------------------------------------]]
-local function Control_OnEnter(frame)
-	frame.obj:Fire("OnEnter")
+local function Control_OnEnter()
+	this.obj:Fire("OnEnter")
 end
 
-local function Control_OnLeave(frame)
-	frame.obj:Fire("OnLeave")
+local function Control_OnLeave()
+	this.obj:Fire("OnLeave")
 end
 
-local function Frame_OnMouseDown(frame)
-	frame.obj.slider:EnableMouseWheel(true)
+local function Frame_OnMouseDown()
+	this.obj.slider:EnableMouseWheel(true)
 	AceGUI:ClearFocus()
 end
 
-local function Slider_OnValueChanged(frame, newvalue)
-	local self = frame.obj
-	if not frame.setup then
+local function Slider_OnValueChanged()
+	local self = this.obj
+	if not this.setup then
+		local newvalue = this:GetValue()
+		if self.step and self.step > 0 then
+			local min_value = self.min or 0
+			newvalue = floor((newvalue - min_value) / self.step + 0.5) * self.step + min_value
+		end
 		if newvalue ~= self.value and not self.disabled then
 			self.value = newvalue
-			self:Fire("OnValueChanged", newvalue)
+			self:Fire("OnValueChanged", 1, newvalue)
 		end
 		if self.value then
 			UpdateText(self)
@@ -70,16 +75,16 @@ local function Slider_OnValueChanged(frame, newvalue)
 	end
 end
 
-local function Slider_OnMouseUp(frame)
-	local self = frame.obj
-	self:Fire("OnMouseUp", self.value)
+local function Slider_OnMouseUp()
+	local self = this.obj
+	self:Fire("OnMouseUp", 1, self.value)
 end
 
-local function Slider_OnMouseWheel(frame, v)
-	local self = frame.obj
+local function Slider_OnMouseWheel()
+	local self = this.obj
 	if not self.disabled then
 		local value = self.value
-		if v > 0 then
+		if arg1 > 0 then
 			value = min(value + (self.step or 1), self.max)
 		else
 			value = max(value - (self.step or 1), self.min)
@@ -88,33 +93,33 @@ local function Slider_OnMouseWheel(frame, v)
 	end
 end
 
-local function EditBox_OnEscapePressed(frame)
-	frame:ClearFocus()
+local function EditBox_OnEscapePressed()
+	this:ClearFocus()
 end
 
-local function EditBox_OnEnterPressed(frame)
-	local self = frame.obj
-	local value = frame:GetText()
+local function EditBox_OnEnterPressed()
+	local self = this.obj
+	local value = this:GetText()
 	if self.ispercent then
-		value = value:gsub('%%', '')
+		value = string.gsub(value, '%%', '')
 		value = tonumber(value) / 100
 	else
 		value = tonumber(value)
 	end
-
+	
 	if value then
 		PlaySound("igMainMenuOptionCheckBoxOn")
 		self.slider:SetValue(value)
-		self:Fire("OnMouseUp", value)
+		self:Fire("OnMouseUp", 1, value)
 	end
 end
 
-local function EditBox_OnEnter(frame)
-	frame:SetBackdropBorderColor(0.5, 0.5, 0.5, 1)
+local function EditBox_OnEnter()
+	this:SetBackdropBorderColor(0.5, 0.5, 0.5, 1)
 end
 
-local function EditBox_OnLeave(frame)
-	frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
+local function EditBox_OnLeave()
+	this:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
 end
 
 --[[-----------------------------------------------------------------------------
@@ -216,9 +221,9 @@ local function Constructor()
 	frame:SetScript("OnMouseDown", Frame_OnMouseDown)
 
 	local label = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	label:SetPoint("TOPLEFT")
-	label:SetPoint("TOPRIGHT")
-	label:SetJustifyH("CENTER")
+	label:SetPoint("TOPLEFT",0,0)
+	label:SetPoint("TOPRIGHT",0,0)
+	label:SetJustifyH("CENTER",0,0)
 	label:SetHeight(15)
 
 	local slider = CreateFrame("Slider", nil, frame)

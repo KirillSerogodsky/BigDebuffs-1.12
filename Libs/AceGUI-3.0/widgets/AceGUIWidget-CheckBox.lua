@@ -1,12 +1,12 @@
 --[[-----------------------------------------------------------------------------
 Checkbox Widget
 -------------------------------------------------------------------------------]]
-local Type, Version = "CheckBox", 26
+local Type, Version = "CheckBox", 22
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
 -- Lua APIs
-local select, pairs = select, pairs
+local pairs = pairs
 
 -- WoW APIs
 local PlaySound = PlaySound
@@ -24,26 +24,26 @@ local function AlignImage(self)
 	self.text:ClearAllPoints()
 	if not img then
 		self.text:SetPoint("LEFT", self.checkbg, "RIGHT")
-		self.text:SetPoint("RIGHT")
+		self.text:SetPoint("RIGHT",0,0)
 	else
-		self.text:SetPoint("LEFT", self.image, "RIGHT", 1, 0)
-		self.text:SetPoint("RIGHT")
+		self.text:SetPoint("LEFT", self.image,"RIGHT", 1, 0)
+		self.text:SetPoint("RIGHT",0,0)
 	end
 end
 
 --[[-----------------------------------------------------------------------------
 Scripts
 -------------------------------------------------------------------------------]]
-local function Control_OnEnter(frame)
-	frame.obj:Fire("OnEnter")
+local function Control_OnEnter()
+	this.obj:Fire("OnEnter")
 end
 
-local function Control_OnLeave(frame)
-	frame.obj:Fire("OnLeave")
+local function Control_OnLeave()
+	this.obj:Fire("OnLeave")
 end
 
-local function CheckBox_OnMouseDown(frame)
-	local self = frame.obj
+local function CheckBox_OnMouseDown()
+	local self = this.obj
 	if not self.disabled then
 		if self.image:GetTexture() then
 			self.text:SetPoint("LEFT", self.image,"RIGHT", 2, -1)
@@ -54,8 +54,9 @@ local function CheckBox_OnMouseDown(frame)
 	AceGUI:ClearFocus()
 end
 
-local function CheckBox_OnMouseUp(frame)
-	local self = frame.obj
+local function CheckBox_OnMouseUp()
+
+	local self = this.obj
 	if not self.disabled then
 		self:ToggleChecked()
 
@@ -65,7 +66,7 @@ local function CheckBox_OnMouseUp(frame)
 			PlaySound("igMainMenuOptionCheckBoxOff")
 		end
 
-		self:Fire("OnValueChanged", self.checked)
+		self:Fire("OnValueChanged", 1, self.checked)
 		AlignImage(self)
 	end
 end
@@ -91,7 +92,7 @@ local methods = {
 		if self.desc then
 			self.desc:SetWidth(width - 30)
 			if self.desc:GetText() and self.desc:GetText() ~= "" then
-				self:SetHeight(28 + self.desc:GetStringHeight())
+				self:SetHeight(28 + self.desc:GetHeight())
 			end
 		end
 	end,
@@ -119,20 +120,20 @@ local methods = {
 		end
 	end,
 
-	["SetValue"] = function(self, value)
+	["SetValue"] = function(self,value)
 		local check = self.check
 		self.checked = value
 		if value then
-			SetDesaturation(check, false)
-			check:Show()
+			SetDesaturation(self.check, false)
+			self.check:Show()
 		else
 			--Nil is the unknown tristate value
 			if self.tristate and value == nil then
-				SetDesaturation(check, true)
-				check:Show()
+				SetDesaturation(self.check, true)
+				self.check:Show()
 			else
-				SetDesaturation(check, false)
-				check:Hide()
+				SetDesaturation(self.check, false)
+				self.check:Hide()
 			end
 		end
 		self:SetDisabled(self.disabled)
@@ -172,6 +173,7 @@ local methods = {
 			highlight:SetTexture("Interface\\Buttons\\UI-CheckBox-Highlight")
 			highlight:SetTexCoord(0, 1, 0, 1)
 		end
+
 		checkbg:SetHeight(size)
 		checkbg:SetWidth(size)
 	end,
@@ -203,7 +205,6 @@ local methods = {
 				desc:ClearAllPoints()
 				desc:SetPoint("TOPLEFT", self.checkbg, "TOPRIGHT", 5, -21)
 				desc:SetWidth(self.frame.width - 30)
-				desc:SetPoint("RIGHT", self.frame, "RIGHT", -30, 0)
 				desc:SetJustifyH("LEFT")
 				desc:SetJustifyV("TOP")
 				self.desc = desc
@@ -211,7 +212,7 @@ local methods = {
 			self.desc:Show()
 			--self.text:SetFontObject(GameFontNormal)
 			self.desc:SetText(desc)
-			self:SetHeight(28 + self.desc:GetStringHeight())
+			self:SetHeight(28 + self.desc:GetHeight())
 		else
 			if self.desc then
 				self.desc:SetText("")
@@ -222,14 +223,13 @@ local methods = {
 		end
 	end,
 
-	["SetImage"] = function(self, path, ...)
+	["SetImage"] = function(self, path, a1,a2,a3,a4,a5,a6,a7,a8)
 		local image = self.image
 		image:SetTexture(path)
 
 		if image:GetTexture() then
-			local n = select("#", ...)
-			if n == 4 or n == 8 then
-				image:SetTexCoord(...)
+			if a4 or a8 then
+				image:SetTexCoord(a1,a2,a3,a4,a5,a6,a7,a8)
 			else
 				image:SetTexCoord(0, 1, 0, 1)
 			end
@@ -254,7 +254,7 @@ local function Constructor()
 	local checkbg = frame:CreateTexture(nil, "ARTWORK")
 	checkbg:SetWidth(24)
 	checkbg:SetHeight(24)
-	checkbg:SetPoint("TOPLEFT")
+	checkbg:SetPoint("TOPLEFT",0,0)
 	checkbg:SetTexture("Interface\\Buttons\\UI-CheckBox-Up")
 
 	local check = frame:CreateTexture(nil, "OVERLAY")
@@ -265,7 +265,7 @@ local function Constructor()
 	text:SetJustifyH("LEFT")
 	text:SetHeight(18)
 	text:SetPoint("LEFT", checkbg, "RIGHT")
-	text:SetPoint("RIGHT")
+	text:SetPoint("RIGHT",0,0)
 
 	local highlight = frame:CreateTexture(nil, "HIGHLIGHT")
 	highlight:SetTexture("Interface\\Buttons\\UI-CheckBox-Highlight")

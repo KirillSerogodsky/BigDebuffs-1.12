@@ -2,17 +2,22 @@
 TabGroup Container
 Container that uses tabs on top to switch between groups.
 -------------------------------------------------------------------------------]]
-local Type, Version = "TabGroup", 31
+local Type, Version = "TabGroup", 36
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
+local AceCore = LibStub("AceCore-3.0")
+local wipe = AceCore.wipe
+
 -- Lua APIs
 local pairs, ipairs, assert, type, wipe = pairs, ipairs, assert, type, wipe
+local tgetn = table.getn
+local strfmt = string.format
 
 -- WoW APIs
 local PlaySound = PlaySound
 local CreateFrame, UIParent = CreateFrame, UIParent
-local _G = _G
+local _G = AceCore._G
 
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
 -- List them here for Mikk's FindGlobals script
@@ -29,57 +34,60 @@ Support functions
 local function UpdateTabLook(frame)
 	if frame.disabled then
 		PanelTemplates_SetDisabledTabState(frame)
+		frame:SetAlpha(0.5)
 	elseif frame.selected then
 		PanelTemplates_SelectTab(frame)
+		frame:SetAlpha(1)
 	else
 		PanelTemplates_DeselectTab(frame)
+		frame:SetAlpha(0.8)
 	end
 end
 
-local function Tab_SetText(frame, text)
-	frame:_SetText(text)
-	local width = frame.obj.frame.width or frame.obj.frame:GetWidth() or 0
-	PanelTemplates_TabResize(frame, 0, nil, width)
+local function Tab_SetText(tab, text)
+	tab:_SetText(text)
+	local width = tab.obj.frame.width or tab.obj.frame:GetWidth() or 0
+	PanelTemplates_TabResize(0, tab, nil, width)
 end
 
-local function Tab_SetSelected(frame, selected)
-	frame.selected = selected
-	UpdateTabLook(frame)
+local function Tab_SetSelected(tab, selected)
+	tab.selected = selected
+	UpdateTabLook(tab)
 end
 
-local function Tab_SetDisabled(frame, disabled)
-	frame.disabled = disabled
-	UpdateTabLook(frame)
+local function Tab_SetDisabled(tab, disabled)
+	tab.disabled = disabled
+	UpdateTabLook(tab)
 end
 
-local function BuildTabsOnUpdate(frame)
-	local self = frame.obj
+local function BuildTabsOnUpdate()
+	local self = this.obj
 	self:BuildTabs()
-	frame:SetScript("OnUpdate", nil)
+	this:SetScript("OnUpdate", nil)
 end
 
 --[[-----------------------------------------------------------------------------
 Scripts
 -------------------------------------------------------------------------------]]
-local function Tab_OnClick(frame)
-	if not (frame.selected or frame.disabled) then
+local function Tab_OnClick()
+	if not (this.selected or this.disabled) then
 		PlaySound("igCharacterInfoTab")
-		frame.obj:SelectTab(frame.value)
+		this.obj:SelectTab(this.value)
 	end
 end
 
-local function Tab_OnEnter(frame)
-	local self = frame.obj
-	self:Fire("OnTabEnter", self.tabs[frame.id].value, frame)
+local function Tab_OnEnter()
+	local self = this.obj
+	self:Fire("OnTabEnter", 2, self.tabs[this.id].value, this)
 end
 
-local function Tab_OnLeave(frame)
-	local self = frame.obj
-	self:Fire("OnTabLeave", self.tabs[frame.id].value, frame)
+local function Tab_OnLeave()
+	local self = this.obj
+	self:Fire("OnTabLeave", 2, self.tabs[this.id].value, this)
 end
 
-local function Tab_OnShow(frame)
-	_G[frame:GetName().."HighlightTexture"]:SetWidth(frame:GetTextWidth() + 30)
+local function Tab_OnShow()
+	_G[this:GetName().."HighlightTexture"]:SetWidth(this:GetTextWidth() + 30)
 end
 
 --[[-----------------------------------------------------------------------------
@@ -102,15 +110,30 @@ local methods = {
 	end,
 
 	["CreateTab"] = function(self, id)
-		local tabname = ("AceGUITabGroup%dTab%d"):format(self.num, id)
-		local tab = CreateFrame("Button", tabname, self.border, "OptionsFrameTabButtonTemplate")
+		local tabname = strfmt("AceGUITabGroup%dTab%d", self.num, id)
+		local tab = CreateFrame("Button", tabname, self.border, "TabButtonTemplate")
+		-- Normal texture
+		local texture = getglobal(tabname.."Left")
+		texture:SetTexture("Interface\\ChatFrame\\ChatFrameTab")
+		texture:ClearAllPoints()
+		texture:SetPoint("BOTTOMLEFT", tab,"BOTTOMLEFT")
+		texture:SetPoint("TOPLEFT", tab,"TOPLEFT")
+		texture = getglobal(tabname.."Middle")
+		texture:SetTexture("Interface\\ChatFrame\\ChatFrameTab")
+		texture = getglobal(tabname.."Right")
+		texture:SetTexture("Interface\\ChatFrame\\ChatFrameTab")
+		-- Disabled texture
+		texture = getglobal(tabname.."LeftDisabled")
+		texture:SetTexture("Interface\\ChatFrame\\ChatFrameTab")
+		texture:SetPoint("BOTTOMLEFT", tab,"BOTTOMLEFT")
+		texture:SetPoint("TOPLEFT", tab,"TOPLEFT")
+		texture = getglobal(tabname.."MiddleDisabled")
+		texture:SetTexture("Interface\\ChatFrame\\ChatFrameTab")
+		texture = getglobal(tabname.."RightDisabled")
+		texture:SetTexture("Interface\\ChatFrame\\ChatFrameTab")
+
 		tab.obj = self
 		tab.id = id
-
-		tab.text = _G[tabname .. "Text"]
-		tab.text:ClearAllPoints()
-		tab.text:SetPoint("LEFT", 14, -3)
-		tab.text:SetPoint("RIGHT", -12, -3)
 
 		tab:SetScript("OnClick", Tab_OnClick)
 		tab:SetScript("OnEnter", Tab_OnEnter)
@@ -153,7 +176,7 @@ local methods = {
 		end
 		status.selected = value
 		if found then
-			self:Fire("OnGroupSelected",value)
+			self:Fire("OnGroupSelected",1,value)
 		end
 	end,
 
@@ -165,6 +188,7 @@ local methods = {
 
 	["BuildTabs"] = function(self)
 		local hastitle = (self.titletext:GetText() and self.titletext:GetText() ~= "")
+		local status = self.status or self.localstatus
 		local tablist = self.tablist
 		local tabs = self.tabs
 
@@ -185,23 +209,28 @@ local methods = {
 			end
 
 			tab:Show()
-			tab:SetText(v.text)
-			tab:SetDisabled(v.disabled)
-			tab.value = v.value
+			if type(v) == "table" then
+				tab:SetText(v.text)
+				tab:SetDisabled(v.disabled)
+				tab.value = v.value
+			elseif type(v) == "string" then
+				tab:SetText(v)
+				tab.value = v
+			end
 
 			widths[i] = tab:GetWidth() - 6 --tabs are anchored 10 pixels from the right side of the previous one to reduce spacing, but add a fixed 4px padding for the text
 		end
 
-		for i = (#tablist)+1, #tabs, 1 do
+		for i = tgetn(tablist)+1, tgetn(tabs), 1 do
 			tabs[i]:Hide()
 		end
 
 		--First pass, find the minimum number of rows needed to hold all tabs and the initial tab layout
-		local numtabs = #tablist
+		local numtabs = tgetn(tablist)
 		local numrows = 1
 		local usedwidth = 0
 
-		for i = 1, #tablist do
+		for i = 1, tgetn(tablist) do
 			--If this is not the first tab of a row and there isn't room for it
 			if usedwidth ~= 0 and (width - usedwidth - widths[i]) < 0 then
 				rowwidths[numrows] = usedwidth + 10 --first tab in each row takes up an extra 10px
@@ -212,7 +241,7 @@ local methods = {
 			usedwidth = usedwidth + widths[i]
 		end
 		rowwidths[numrows] = usedwidth + 10 --first tab in each row takes up an extra 10px
-		rowends[numrows] = #tablist
+		rowends[numrows] = tgetn(tablist)
 
 		--Fix for single tabs being left on the last row, move a tab from the row above if applicable
 		if numrows > 1 then
@@ -255,12 +284,12 @@ local methods = {
 			end
 
 			for i = starttab, endtab do
-				PanelTemplates_TabResize(tabs[i], padding + 4, nil, width)
+				PanelTemplates_TabResize(padding + 4, tabs[i], nil, width)
 			end
 			starttab = endtab + 1
 		end
 
-		self.borderoffset = (hastitle and 17 or 10)+((numrows)*20)
+		self.borderoffset = (hastitle and 17 or 10)+((numrows)*20)+7
 		self.border:SetPoint("TOPLEFT", 1, -self.borderoffset)
 	end,
 

@@ -2,7 +2,7 @@
 -- @class file
 -- @name AceLocale-3.0
 -- @release $Id: AceLocale-3.0.lua 1035 2011-07-09 03:20:13Z kaelten $
-local MAJOR,MINOR = "AceLocale-3.0", 7
+local MAJOR,MINOR = "AceLocale-3.0", 6
 
 local AceLocale, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
@@ -112,7 +112,7 @@ function AceLocale:NewLocale(application, locale, isDefault, silent)
 	end
 
 	if locale ~= gameLocale and not isDefault then
-		return -- nop, we don't need these translations
+		return nil	-- nop, we don't need these translations
 	end
 
 	registering = app -- remember globally for writeproxy and writedefaultproxy

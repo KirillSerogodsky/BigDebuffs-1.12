@@ -2,12 +2,12 @@
 Label Widget
 Displays text and optionally an icon.
 -------------------------------------------------------------------------------]]
-local Type, Version = "Label", 26
+local Type, Version = "Label", 23
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
 -- Lua APIs
-local max, select, pairs = math.max, select, pairs
+local max, pairs = math.max, pairs
 
 -- WoW APIs
 local CreateFrame, UIParent = CreateFrame, UIParent
@@ -35,34 +35,29 @@ local function UpdateImageAnchor(self)
 		local imagewidth = image:GetWidth()
 		if (width - imagewidth) < 200 or (label:GetText() or "") == "" then
 			-- image goes on top centered when less than 200 width for the text, or if there is no text
-			image:SetPoint("TOP")
+			image:SetPoint("TOP",0,0)
 			label:SetPoint("TOP", image, "BOTTOM")
-			label:SetPoint("LEFT")
+			label:SetPoint("LEFT",0,0)
 			label:SetWidth(width)
-			height = image:GetHeight() + label:GetStringHeight()
+			height = image:GetHeight() + label:GetHeight()
 		else
 			-- image on the left
-			image:SetPoint("TOPLEFT")
-			if image:GetHeight() > label:GetStringHeight() then
+			image:SetPoint("TOPLEFT",0,0)
+			if image:GetHeight() > label:GetHeight() then
 				label:SetPoint("LEFT", image, "RIGHT", 4, 0)
 			else
 				label:SetPoint("TOPLEFT", image, "TOPRIGHT", 4, 0)
 			end
 			label:SetWidth(width - imagewidth - 4)
-			height = max(image:GetHeight(), label:GetStringHeight())
+			height = max(image:GetHeight(), label:GetHeight())
 		end
 	else
 		-- no image shown
-		label:SetPoint("TOPLEFT")
+		label:SetPoint("TOPLEFT",0,0)
 		label:SetWidth(width)
-		height = label:GetStringHeight()
+		height = label:GetHeight()
 	end
-
-	-- avoid zero-height labels, since they can used as spacers
-	if not height or height == 0 then
-		height = 1
-	end
-
+	
 	self.resizing = true
 	frame:SetHeight(height)
 	frame.height = height
@@ -83,8 +78,6 @@ local methods = {
 		self:SetImageSize(16, 16)
 		self:SetColor()
 		self:SetFontObject()
-		self:SetJustifyH("LEFT")
-		self:SetJustifyV("TOP")
 
 		-- reset the flag
 		self.resizing = nil
@@ -110,15 +103,14 @@ local methods = {
 		self.label:SetVertexColor(r, g, b)
 	end,
 
-	["SetImage"] = function(self, path, ...)
+	["SetImage"] = function(self, path, a1,a2,a3,a4,a5,a6,a7,a8)
 		local image = self.image
 		image:SetTexture(path)
-
+		
 		if image:GetTexture() then
 			self.imageshown = true
-			local n = select("#", ...)
-			if n == 4 or n == 8 then
-				image:SetTexCoord(...)
+			if a4 or a8 then
+				image:SetTexCoord(a1,a2,a3,a4,a5,a6,a7,a8)
 			else
 				image:SetTexCoord(0, 1, 0, 1)
 			end
@@ -141,14 +133,6 @@ local methods = {
 		self.image:SetHeight(height)
 		UpdateImageAnchor(self)
 	end,
-
-	["SetJustifyH"] = function(self, justifyH)
-		self.label:SetJustifyH(justifyH)
-	end,
-
-	["SetJustifyV"] = function(self, justifyV)
-		self.label:SetJustifyV(justifyV)
-	end,
 }
 
 --[[-----------------------------------------------------------------------------
@@ -159,6 +143,9 @@ local function Constructor()
 	frame:Hide()
 
 	local label = frame:CreateFontString(nil, "BACKGROUND", "GameFontHighlightSmall")
+	label:SetJustifyH("LEFT")
+	label:SetJustifyV("TOP")
+
 	local image = frame:CreateTexture(nil, "BACKGROUND")
 
 	-- create widget

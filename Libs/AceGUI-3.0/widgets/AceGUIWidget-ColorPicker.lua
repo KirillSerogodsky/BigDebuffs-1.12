@@ -1,7 +1,7 @@
 --[[-----------------------------------------------------------------------------
 ColorPicker Widget
 -------------------------------------------------------------------------------]]
-local Type, Version = "ColorPicker", 25
+local Type, Version = "ColorPicker", 23
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
@@ -13,7 +13,7 @@ local CreateFrame, UIParent = CreateFrame, UIParent
 
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
 -- List them here for Mikk's FindGlobals script
--- GLOBALS: ColorPickerFrame, OpacitySliderFrame
+-- GLOBALS: ShowUIPanel, HideUIPanel, ColorPickerFrame, OpacitySliderFrame
 
 --[[-----------------------------------------------------------------------------
 Support functions
@@ -25,12 +25,12 @@ local function ColorCallback(self, r, g, b, a, isAlpha)
 	self:SetColor(r, g, b, a)
 	if ColorPickerFrame:IsVisible() then
 		--colorpicker is still open
-		self:Fire("OnValueChanged", r, g, b, a)
+		self:Fire("OnValueChanged", 4, r, g, b, a)
 	else
 		--colorpicker is closed, color callback is first, ignore it,
 		--alpha callback is the final call after it closes so confirm now
 		if isAlpha then
-			self:Fire("OnValueConfirmed", r, g, b, a)
+			self:Fire("OnValueConfirmed", 4, r, g, b, a)
 		end
 	end
 end
@@ -38,20 +38,19 @@ end
 --[[-----------------------------------------------------------------------------
 Scripts
 -------------------------------------------------------------------------------]]
-local function Control_OnEnter(frame)
-	frame.obj:Fire("OnEnter")
+local function Control_OnEnter()
+	this.obj:Fire("OnEnter")
 end
 
-local function Control_OnLeave(frame)
-	frame.obj:Fire("OnLeave")
+local function Control_OnLeave()
+	this.obj:Fire("OnLeave")
 end
 
-local function ColorSwatch_OnClick(frame)
-	ColorPickerFrame:Hide()
-	local self = frame.obj
+local function ColorSwatch_OnClick()
+	HideUIPanel(ColorPickerFrame)
+	local self = this.obj
 	if not self.disabled then
 		ColorPickerFrame:SetFrameStrata("FULLSCREEN_DIALOG")
-		ColorPickerFrame:SetFrameLevel(frame:GetFrameLevel() + 10)
 		ColorPickerFrame:SetClampedToScreen(true)
 
 		ColorPickerFrame.func = function()
@@ -77,7 +76,7 @@ local function ColorSwatch_OnClick(frame)
 			ColorCallback(self, r, g, b, a, true)
 		end
 
-		ColorPickerFrame:Show()
+		ShowUIPanel(ColorPickerFrame)
 	end
 	AceGUI:ClearFocus()
 end
@@ -141,10 +140,9 @@ local function Constructor()
 	colorSwatch:SetWidth(19)
 	colorSwatch:SetHeight(19)
 	colorSwatch:SetTexture("Interface\\ChatFrame\\ChatFrameColorSwatch")
-	colorSwatch:SetPoint("LEFT")
+	colorSwatch:SetPoint("LEFT",0,0)
 
 	local texture = frame:CreateTexture(nil, "BACKGROUND")
-	colorSwatch.background = texture
 	texture:SetWidth(16)
 	texture:SetHeight(16)
 	texture:SetTexture(1, 1, 1)
@@ -152,7 +150,6 @@ local function Constructor()
 	texture:Show()
 
 	local checkers = frame:CreateTexture(nil, "BACKGROUND")
-	colorSwatch.checkers = checkers
 	checkers:SetWidth(14)
 	checkers:SetHeight(14)
 	checkers:SetTexture("Tileset\\Generic\\Checkers")
@@ -167,7 +164,7 @@ local function Constructor()
 	text:SetJustifyH("LEFT")
 	text:SetTextColor(1, 1, 1)
 	text:SetPoint("LEFT", colorSwatch, "RIGHT", 2, 0)
-	text:SetPoint("RIGHT")
+	text:SetPoint("RIGHT",0,0)
 
 	--local highlight = frame:CreateTexture(nil, "HIGHLIGHT")
 	--highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")

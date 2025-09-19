@@ -2,13 +2,16 @@
 ScrollFrame Container
 Plain container that scrolls its content and doesn't grow in height.
 -------------------------------------------------------------------------------]]
-local Type, Version = "ScrollFrame", 26
+local Type, Version = "ScrollFrame", 25
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
+local fixlevels = AceGUI.fixlevels
+
 -- Lua APIs
 local pairs, assert, type = pairs, assert, type
-local min, max, floor = math.min, math.max, math.floor
+local min, max, floor, abs = math.min, math.max, math.floor, math.abs
+local format = string.format
 
 -- WoW APIs
 local CreateFrame, UIParent = CreateFrame, UIParent
@@ -16,24 +19,25 @@ local CreateFrame, UIParent = CreateFrame, UIParent
 --[[-----------------------------------------------------------------------------
 Support functions
 -------------------------------------------------------------------------------]]
-local function FixScrollOnUpdate(frame)
-	frame:SetScript("OnUpdate", nil)
-	frame.obj:FixScroll()
+local function FixScrollOnUpdate()
+	this:SetScript("OnUpdate", nil)
+	this.obj:FixScroll()
 end
 
 --[[-----------------------------------------------------------------------------
 Scripts
 -------------------------------------------------------------------------------]]
-local function ScrollFrame_OnMouseWheel(frame, value)
-	frame.obj:MoveScroll(value)
+local function ScrollFrame_OnMouseWheel()
+	this.obj:MoveScroll(arg1)
 end
 
-local function ScrollFrame_OnSizeChanged(frame)
-	frame:SetScript("OnUpdate", FixScrollOnUpdate)
+local function ScrollFrame_OnSizeChanged()
+	this:SetScript("OnUpdate", FixScrollOnUpdate)
 end
 
-local function ScrollBar_OnScrollValueChanged(frame, value)
-	frame.obj:SetScroll(value)
+local function ScrollBar_OnScrollValueChanged()
+	this.obj:SetScroll(arg1)
+	this.obj:UpdateScrollButtonsState()
 end
 
 --[[-----------------------------------------------------------------------------
@@ -50,10 +54,10 @@ local methods = {
 		for k in pairs(self.localstatus) do
 			self.localstatus[k] = nil
 		end
-		self.scrollframe:SetPoint("BOTTOMRIGHT")
+		self.scrollframe:SetPoint("BOTTOMRIGHT",0,0)
 		self.scrollbar:Hide()
 		self.scrollBarShown = nil
-		self.content.height, self.content.width, self.content.original_width = nil, nil, nil
+		self.content.height, self.content.width = nil, nil
 	end,
 
 	["SetScroll"] = function(self, value)
@@ -74,6 +78,26 @@ local methods = {
 		status.scrollvalue = value
 	end,
 
+	["UpdateScrollButtonsState"] = function(self)
+		local upbutton = getglobal(self.scrollbar:GetName() .. "ScrollUpButton")
+		local downbutton = getglobal(self.scrollbar:GetName() .. "ScrollDownButton")
+
+		local value = self.scrollbar:GetValue()
+		local minvalue, maxvalue = self.scrollbar:GetMinMaxValues()
+
+		if value == minvalue then
+			upbutton:Disable()
+		else
+			upbutton:Enable()
+		end
+
+		if value == maxvalue then
+			downbutton:Disable()
+		else
+			downbutton:Enable()
+		end
+	end,
+
 	["MoveScroll"] = function(self, value)
 		local status = self.status or self.localstatus
 		local height, viewheight = self.scrollframe:GetHeight(), self.content:GetHeight()
@@ -89,55 +113,52 @@ local methods = {
 	end,
 
 	["FixScroll"] = function(self)
+
 		if self.updateLock then return end
 		self.updateLock = true
 		local status = self.status or self.localstatus
-		local height, viewheight = self.scrollframe:GetHeight(), self.content:GetHeight()
+		local scrollframe, content, scrollbar = self.scrollframe, self.content, self.scrollbar
+		local viewheight, height  = self.scrollframe:GetHeight(), self.content:GetHeight()
 		local offset = status.offset or 0
+		local curvalue = scrollbar:GetValue()
 		-- Give us a margin of error of 2 pixels to stop some conditions that i would blame on floating point inaccuracys
 		-- No-one is going to miss 2 pixels at the bottom of the frame, anyhow!
-		if viewheight < height + 2 then
+
+		if height < viewheight + 2 then
 			if self.scrollBarShown then
 				self.scrollBarShown = nil
-				self.scrollbar:Hide()
-				self.scrollbar:SetValue(0)
-				self.scrollframe:SetPoint("BOTTOMRIGHT")
-				if self.content.original_width then
-					self.content.width = self.content.original_width
-				end
+				scrollbar:Hide()
+				scrollbar:SetValue(0)
+				scrollframe:SetPoint("BOTTOMRIGHT",0,0)
 				self:DoLayout()
 			end
+			offset = 0
 		else
 			if not self.scrollBarShown then
 				self.scrollBarShown = true
-				self.scrollbar:Show()
-				self.scrollframe:SetPoint("BOTTOMRIGHT", -20, 0)
-				if self.content.original_width then
-					self.content.width = self.content.original_width - 20
-				end
+				self:UpdateScrollButtonsState()
+				scrollbar:Show()
+				scrollframe:SetPoint("BOTTOMRIGHT", -20, 0)
 				self:DoLayout()
 			end
-			local value = (offset / (viewheight - height) * 1000)
-			if value > 1000 then value = 1000 end
-			self.scrollbar:SetValue(value)
-			self:SetScroll(value)
-			if value < 1000 then
-				self.content:ClearAllPoints()
-				self.content:SetPoint("TOPLEFT", 0, offset)
-				self.content:SetPoint("TOPRIGHT", 0, offset)
-				status.offset = offset
+			local value = (offset / (height - viewheight) * 1000)
+			if value > 1000 then
+				value = 1000
+				offset = height - viewheight
 			end
+			scrollbar:SetValue(value)
+			self:SetScroll(value)
 		end
+		status.offset = offset
+		scrollframe:SetScrollChild(content)
+		content:ClearAllPoints()
+		content:SetPoint("TOPLEFT", 0, offset)
+		content:SetPoint("TOPRIGHT", 0, offset)
 		self.updateLock = nil
 	end,
 
 	["LayoutFinished"] = function(self, width, height)
 		self.content:SetHeight(height or 0 + 20)
-
-		-- update the scrollframe
-		self:FixScroll()
-
-		-- schedule another update when everything has "settled"
 		self.scrollframe:SetScript("OnUpdate", FixScrollOnUpdate)
 	end,
 
@@ -151,8 +172,7 @@ local methods = {
 
 	["OnWidthSet"] = function(self, width)
 		local content = self.content
-		content.width = width - (self.scrollBarShown and 20 or 0)
-		content.original_width = width
+		content.width = width
 	end,
 
 	["OnHeightSet"] = function(self, height)
@@ -168,13 +188,13 @@ local function Constructor()
 	local num = AceGUI:GetNextWidgetNum(Type)
 
 	local scrollframe = CreateFrame("ScrollFrame", nil, frame)
-	scrollframe:SetPoint("TOPLEFT")
-	scrollframe:SetPoint("BOTTOMRIGHT")
+	scrollframe:SetPoint("TOPLEFT",0,0)
+	scrollframe:SetPoint("BOTTOMRIGHT",0,0)
 	scrollframe:EnableMouseWheel(true)
 	scrollframe:SetScript("OnMouseWheel", ScrollFrame_OnMouseWheel)
 	scrollframe:SetScript("OnSizeChanged", ScrollFrame_OnSizeChanged)
 
-	local scrollbar = CreateFrame("Slider", ("AceConfigDialogScrollFrame%dScrollBar"):format(num), scrollframe, "UIPanelScrollBarTemplate")
+	local scrollbar = CreateFrame("Slider", format("AceConfigDialogScrollFrame%dScrollBar", num), scrollframe, "UIPanelScrollBarTemplate")
 	scrollbar:SetPoint("TOPLEFT", scrollframe, "TOPRIGHT", 4, -16)
 	scrollbar:SetPoint("BOTTOMLEFT", scrollframe, "BOTTOMRIGHT", 4, 16)
 	scrollbar:SetMinMaxValues(0, 1000)
@@ -191,8 +211,8 @@ local function Constructor()
 
 	--Container Support
 	local content = CreateFrame("Frame", nil, scrollframe)
-	content:SetPoint("TOPLEFT")
-	content:SetPoint("TOPRIGHT")
+	content:SetPoint("TOPLEFT",0,0)
+	content:SetPoint("TOPRIGHT",0,0)
 	content:SetHeight(400)
 	scrollframe:SetScrollChild(content)
 
