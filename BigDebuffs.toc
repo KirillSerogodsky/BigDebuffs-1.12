@@ -23,8 +23,6 @@ Libs\LibSharedMedia-3.0\lib.xml
 
 Locales\Locales.xml
 BigDebuffs.xml
-BigDebuffs_Wrath.lua
-BigDebuffs_TBC.lua
 BigDebuffs_Vanilla.lua
 BigDebuffs.lua
 Options.lua
