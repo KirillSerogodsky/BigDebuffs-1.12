@@ -2,7 +2,7 @@ if ( WOW_PROJECT_ID_RCE ~= WOW_PROJECT_CLASSIC ) then
 	return
 end
 
-local addonName, addon = ...
+local addonName, addon = BigDebuffsAddonName, BigDebuffsAddon
 
 local BUFF_DEFENSIVE = "buffs_defensive"
 local BUFF_OFFENSIVE = "buffs_offensive"

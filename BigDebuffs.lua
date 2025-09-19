@@ -1,6 +1,6 @@
 -- BigDebuffs by Jordon
 
-local addonName, addon = ...
+local addonName, addon = BigDebuffsAddonName, BigDebuffsAddon
 
 local UnitChannelInfo = C_UnitChannelInfo
 local GetSpellTexture = C_GetSpellTexture
