@@ -16,7 +16,7 @@ addon.Units = {
     "player",
     "pet",
     "target",
-    "focus",
+    -- "focus",
     "party1",
     "party2",
     "party3",
