@@ -4,7 +4,6 @@
 ## Version: 1.2
 ## Author: Jordon, Tsoukie
 ## SavedVariables: BigDebuffsDB
-## RequiredDeps: !!!ClassicAPI
 
 #@no-lib-strip@
 Libs\LibStub\LibStub.lua
