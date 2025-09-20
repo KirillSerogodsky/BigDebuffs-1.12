@@ -332,6 +332,15 @@ local GetAnchor = {
             return
         end
     end,
+    pfUIFrames = function(anchor)
+        local frame = _G[anchor]
+        if not frame then return end
+        if frame.portrait and frame.portrait:IsShown() then
+            return frame.portrait, frame
+        else
+            return frame, frame, true
+        end
+    end,
 }
 
 local anchors = {
@@ -466,6 +475,20 @@ local anchors = {
             party2 = "CellPartyFrameMember3",
             party3 = "CellPartyFrameMember4",
             party4 = "CellPartyFrameMember5",
+        },
+    },
+    ["pfUI"] = {
+        func = GetAnchor.pfUIFrames,
+        -- noPortait = true,
+        units = {
+            player = "pfPlayer",
+            -- pet = "pfPet",
+            target = "pfTarget",
+            -- focus = "pfFocus",
+            -- party1 = "pfParty1",
+            -- party2 = "pfParty2",
+            -- party3 = "pfParty3",
+            -- party4 = "pfParty4",
         },
     },
     ["Blizzard"] = {
