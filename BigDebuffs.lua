@@ -335,10 +335,10 @@ local GetAnchor = {
     pfUIFrames = function(anchor)
         local frame = _G[anchor]
         if not frame then return end
-        if frame.portrait and frame.portrait:IsShown() then
+        if frame.config.portrait == "left" or frame.config.portrait == "right" then
             return frame.portrait, frame
         else
-            return frame, frame, true
+            return nil -- TODO: "bar", "off"
         end
     end,
 }
