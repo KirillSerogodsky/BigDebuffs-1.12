@@ -716,10 +716,12 @@ function BigDebuffs:AttachUnitFrame(unit)
             end
 
             if not config.matchFrameHeight then
-                frame:SetSize(config.size, config.size)
+                frame:SetWidth(config.size)
+                frame:SetHeight(config.size)
             else
                 local height = frame.anchor:GetHeight()
-                frame:SetSize(height, height)
+                frame:SetWidth(height)
+                frame:SetHeight(height)
             end
         else
             if frame.blizzard then
@@ -748,7 +750,7 @@ function BigDebuffs:AttachUnitFrame(unit)
 
         if self.db.profile.unitFrames[unit].position then
             local p = self.db.profile.unitFrames[unit].position
-            frame:SetPoint(p[1],p[2],p[3],p[4],p[5])
+            frame:SetPoint(p[1], p[2], p[3], p[4], p[5])
         else
             -- No saved position, anchor to the blizzard position
             if WOW_PROJECT_ID_RCE ~= WOW_PROJECT_CLASSIC then LoadAddOn("Blizzard_ArenaUI") end
@@ -765,10 +767,11 @@ function BigDebuffs:AttachUnitFrame(unit)
 end
 
 function BigDebuffs:SaveUnitFramePosition(frame)
-    local point, relativeTo, relativePoint, xOfs, yOfs = frame:GetPoint()
+    local point, _, relativePoint, xOfs, yOfs = frame:GetPoint()
+
     self.db.profile.unitFrames[frame.unit].position = {
         point,
-        relativeTo and relativeTo:GetName() or nil,
+        "UIParent",
         relativePoint,
         xOfs,
         yOfs

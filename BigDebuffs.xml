@@ -71,8 +71,7 @@
             </OnDragStart>
             <OnDragStop>
                 this:StopMovingOrSizing()
-                <!-- TODO game just crash 
-                BigDebuffs:SaveUnitFramePosition(this) -->
+                BigDebuffs:SaveUnitFramePosition(this)
             </OnDragStop>
             <OnUpdate>
 				<!-- TODO no IsMouseOver
