@@ -61,9 +61,10 @@
         <Scripts>
             <OnLoad>
                 <!-- parentKey's -->
-                this.icon = getglobal(this:GetName() .. "Icon")
-                this.cooldown = getglobal(this:GetName() .. "Cooldown")
-                this.Name = getglobal(this:GetName() .. "Name")
+                local name = this:GetName()
+                this.icon = getglobal(name .. "Icon")
+                this.cooldown = getglobal(name .. "Cooldown")
+                this.Name = getglobal(name .. "Name")
             </OnLoad>
             <OnDragStart>
                 this:StartMoving()

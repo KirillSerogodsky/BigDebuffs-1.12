@@ -3,13 +3,15 @@ local L = LibStub("AceLocale-3.0"):GetLocale("BigDebuffs")
 local LibSharedMedia = LibStub("LibSharedMedia-3.0")
 
 local GetSpellTexture = C_GetSpellTexture
+local GetSpellInfo = C_GetSpellInfo
+local Spell = C_Spell
 local tgetn = table.getn
 
 local WarningDebuffs = {}
 if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
     for i = 1, tgetn(BigDebuffs.WarningDebuffs) do
         local id = BigDebuffs.WarningDebuffs[i]
-        local name = C_GetSpellInfo(id)
+        local name = GetSpellInfo(id)
         WarningDebuffs[name] = {
             type = "toggle",
             get = function(info) local key = info[tgetn(info)-2] return BigDebuffs.db.profile[key].warningList[id] end,
@@ -19,7 +21,7 @@ if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
             end,
             name = name,
             desc = function()
-                local s = C_Spell:CreateFromSpellID(id)
+                local s = Spell:CreateFromSpellID(id)
                 local spellDesc = s:GetSpellDescription() or ""
                 local extra =
                 "\n\n|cffffd700"..L["Spell ID"].."|r "..id..
@@ -73,7 +75,7 @@ for spellID, spell in pairs(BigDebuffs.Spells) do
                 BigDebuffs:Refresh()
             end,
             name = function(info)
-                local name = SpellNames[spellID] or C_GetSpellInfo(spellID)
+                local name = SpellNames[spellID] or GetSpellInfo(spellID)
                 SpellNames[spellID] = name
                 return name
             end,
@@ -83,7 +85,7 @@ for spellID, spell in pairs(BigDebuffs.Spells) do
                 return icon
             end,
             desc = function()
-                local s = C_Spell:CreateFromSpellID(spellID)
+                local s = Spell:CreateFromSpellID(spellID)
                 local spellDesc = s:GetSpellDescription() or ""
                 local extra = "\n\n|cffffd700"..L["Spell ID"].."|r "..spellID
                 return spellDesc..extra

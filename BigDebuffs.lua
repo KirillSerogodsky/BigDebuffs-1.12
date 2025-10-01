@@ -5,6 +5,10 @@ local tgetn, sfind, sgsub = table.getn, string.find, string.gsub
 
 local UnitChannelInfo = C_UnitChannelInfo
 local GetSpellTexture = C_GetSpellTexture
+local GetSpellInfo = C_GetSpellInfo
+local IsUsableSpell = C_IsUsableSpell
+local UnitGUID = C_UnitGUID
+local InCombatLockdown = C_InCombatLockdown
 
 BigDebuffs = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceHook-3.0")
 local LibSharedMedia = LibStub("LibSharedMedia-3.0")
@@ -170,11 +174,11 @@ local classDispel = {
         Disease = true,
         Poison = true,
         -- Shamans 'Cleanse Spirit' restoration talent
-        Curse = function() return C_IsUsableSpell(C_GetSpellInfo(51886)) end
+        Curse = function() return IsUsableSpell(GetSpellInfo(51886)) end
     },
     WARLOCK = {
         -- Felhunter's Devour Magic or Doomguard's Dispel Magic
-        Magic = function() return C_IsUsableSpell(C_GetSpellInfo(19736)) or C_IsUsableSpell(C_GetSpellInfo(19476)) end,
+        Magic = function() return IsUsableSpell(GetSpellInfo(19736)) or IsUsableSpell(GetSpellInfo(19476)) end,
     },
 }
 local _, class = UnitClass("player")
@@ -210,11 +214,11 @@ local GetAnchor = {
             end
         end
         if unit and (sfind(unit, "party") or sfind(unit, "player")) then
-            local unitGUID = C_UnitGUID(unit)
+            local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local elvUIFrame = _G["ElvUF_PartyGroup1UnitButton" .. i]
                 if elvUIFrame and elvUIFrame:IsVisible() and elvUIFrame.unit then
-                    if unitGUID == C_UnitGUID(elvUIFrame.unit) then
+                    if unitGUID == UnitGUID(elvUIFrame.unit) then
                         return elvUIFrame
                     end
                 end
@@ -222,11 +226,11 @@ local GetAnchor = {
         end
 
         if unit and (sfind(unit, "arena") or sfind(unit, "arena")) then
-            local unitGUID = C_UnitGUID(unit)
+            local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local elvUIFrame = _G["ElvUF_Arena" .. i]
                 if elvUIFrame and elvUIFrame:IsVisible() and elvUIFrame.unit then
-                    if unitGUID == C_UnitGUID(elvUIFrame.unit) then
+                    if unitGUID == UnitGUID(elvUIFrame.unit) then
                         return elvUIFrame
                     end
                 end
@@ -247,11 +251,11 @@ local GetAnchor = {
         end
 
         if unit and (sfind(unit, "party") or sfind(unit, "player")) then
-            local unitGUID = C_UnitGUID(unit)
+            local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local oUFFrame = _G["oUF_PartyGroup1UnitButton" .. i]
                 if oUFFrame and oUFFrame:IsVisible() and oUFFrame.unit then
-                    if unitGUID == C_UnitGUID(oUFFrame.unit) then
+                    if unitGUID == UnitGUID(oUFFrame.unit) then
                         return oUFFrame
                     end
                 end
@@ -260,11 +264,11 @@ local GetAnchor = {
         end
 
         if unit and (sfind(unit, "arena") or sfind(unit, "arena")) then
-            local unitGUID = C_UnitGUID(unit)
+            local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local oUFFrame = _G["oUF_Arena" .. i]
                 if oUFFrame and oUFFrame:IsVisible() and oUFFrame.unit then
-                    if unitGUID == C_UnitGUID(oUFFrame.unit) then
+                    if unitGUID == UnitGUID(oUFFrame.unit) then
                         return oUFFrame
                     end
                 end
@@ -323,7 +327,7 @@ local GetAnchor = {
 
         if unit and (sfind(unit, "party") or sfind(unit, "player")) then
             if Cell then
-                local guid = C_UnitGUID(unit)
+                local guid = UnitGUID(unit)
                 local frame = Cell.funcs:GetUnitButtonByGUID(guid)
                 if frame then
                     return frame, frame, true
@@ -592,7 +596,7 @@ function BigDebuffs:Refresh()
 end
 
 function BigDebuffs:AttachUnitFrame(unit)
-    if C_InCombatLockdown() then return end
+    if InCombatLockdown() then return end
 
     local frame = self.UnitFrames[unit]
     local frameName = addonName .. unit .. "UnitFrame"
@@ -843,7 +847,7 @@ function BigDebuffs:COMBAT_LOG_EVENT_UNFILTERED(Self, ...)
     -- Find unit
     for i = 1, tgetn(unitsWithRaid) do
         local unit = unitsWithRaid[i]
-        if destGUID == C_UnitGUID(unit) and (event ~= "SPELL_CAST_SUCCESS" or
+        if destGUID == UnitGUID(unit) and (event ~= "SPELL_CAST_SUCCESS" or
             (UnitChannelInfo and select(7, UnitChannelInfo(unit)) == false))
         then
             local duration = spell.parent and self.Spells[spell.parent].duration or spell.duration
@@ -962,7 +966,7 @@ local function CompactUnitFrame_UpdateAll_Hook(frame)
     if frame:IsForbidden() then return end
     local name = frame:GetName()
     if not name or not name:match("^Compact") then return end
-    if C_InCombatLockdown() and not frame.BigDebuffs then
+    if InCombatLockdown() and not frame.BigDebuffs then
         if not pending[frame] then pending[frame] = true end
 --  if not IsInGroup() or GetNumGroupMembers() > 5 then return end
     else
@@ -995,7 +999,7 @@ function BigDebuffs:IsDispellable(unit, dispelType)
             unit == "player" and
             (dispelType == "Poison" or dispelType == "Disease")
         then
-            return C_IsUsableSpell("Stoneform")
+            return IsUsableSpell("Stoneform")
         end
 
         return self.dispelTypes[dispelType]
@@ -1082,7 +1086,7 @@ end
 --classic and BigDebuffs:ShowBigDebuffs()
 
 local CompactUnitFrame_UtilSetDebuff = function(debuffFrame, unit, index, filter, isBossAura, isBossBuff, ...)
-    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or C_UnitDebuff
+    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or UnitDebuff
     -- make sure you are using the correct index here!
     --isBossAura says make this look large.
     --isBossBuff looks in HELPFULL auras otherwise it looks in HARMFULL ones
@@ -1090,7 +1094,7 @@ local CompactUnitFrame_UtilSetDebuff = function(debuffFrame, unit, index, filter
 
     if index == -1 then
         -- it's an interrupt
-        local spell = BigDebuffs.units[C_UnitGUID(unit)]
+        local spell = BigDebuffs.units[UnitGUID(unit)]
         spellId = spell.spellId
         icon = GetSpellTexture(spellId)
         count = 1
@@ -1101,7 +1105,7 @@ local CompactUnitFrame_UtilSetDebuff = function(debuffFrame, unit, index, filter
             -- for backwards compatibility - this functionality will be removed in a future update
             if unit then
                 if (isBossBuff) then
-                    name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = C_UnitBuff(unit,
+                    name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = UnitBuff(unit,
                         index, filter);
                 else
                     name, icon, count, debuffType, duration, expirationTime, unitCaster, _, _, spellId = UnitDebuff(unit
@@ -1335,7 +1339,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
         return
     end
 
-    local UnitDebuff = self.test and UnitDebuffTest or C_UnitDebuff
+    local UnitDebuff = self.test and UnitDebuffTest or UnitDebuff
 
     HideBigDebuffs(frame)
 
@@ -1383,7 +1387,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
     end
 
     -- check for interrupts
-    local guid = C_UnitGUID(frame.displayedUnit)
+    local guid = UnitGUID(frame.displayedUnit)
     if guid and self.units[guid] and self.units[guid].expires and self.units[guid].expires > GetTime() then
         local spellId = self.units[guid].spellId
         local size = self:GetDebuffSize(spellId, false)
@@ -1469,7 +1473,7 @@ function BigDebuffs:UNIT_AURA(unit)
     local frame = self.UnitFrames[unit]
     if not frame then return end
 
-    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or C_UnitDebuff
+    local UnitDebuff = BigDebuffs.test and UnitDebuffTest or UnitDebuff
 
     local now = GetTime()
     local left, priority, duration, expires, icon, debuff, buff, interrupt = 0, 0
@@ -1496,7 +1500,7 @@ function BigDebuffs:UNIT_AURA(unit)
         end
 
         -- Check buffs
-        _, n, _, _, d, e, caster, _, _, id = C_UnitBuff(unit, i)
+        _, n, _, _, d, e, caster, _, _, id = UnitBuff(unit, i)
         if id then
             if self.Spells[id] then
                 local p = self:GetAuraPriority(id)
@@ -1516,7 +1520,7 @@ function BigDebuffs:UNIT_AURA(unit)
     end
 
     -- Check for interrupt
-    local guid = C_UnitGUID(unit)
+    local guid = UnitGUID(unit)
     if guid and self.units[guid] and self.units[guid].expires and self.units[guid].expires > now then
         local spell = self.units[guid]
         local spellId = spell.spellId

@@ -37,7 +37,7 @@ function C_Spell:GetSpellDescription()
 end
 
 function C_InCombatLockdown()
-    return UnitAffectingCombat("player") or false
+    return false
 end
 
 function C_UnitGUID(unit)
