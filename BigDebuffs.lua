@@ -9,6 +9,8 @@ local GetSpellInfo = C_GetSpellInfo
 local IsUsableSpell = C_IsUsableSpell
 local UnitGUID = C_UnitGUID
 local InCombatLockdown = C_InCombatLockdown
+local CooldownFrame_Set = C_CooldownFrame_Set
+local CooldownFrame_Clear = C_CooldownFrame_Clear
 
 BigDebuffs = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceHook-3.0")
 local LibSharedMedia = LibStub("LibSharedMedia-3.0")
@@ -1559,7 +1561,7 @@ function BigDebuffs:UNIT_AURA(unit)
             end
         end
 
-        -- TODO CooldownFrame_SetTimer(frame.cooldown, GetTime(), duration, 1)
+        CooldownFrame_Set(frame.cooldown, expires - duration, duration, true)
         frame:Show()
         --frame.cooldown:SetSwipeColor(0, 0, 0, 0.6)
 

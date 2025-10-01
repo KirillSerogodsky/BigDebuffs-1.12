@@ -56,7 +56,12 @@
                 <Anchors>
                     <Anchor point="CENTER" x="0" y="-1"/>
                 </Anchors>
-            </Model>
+                <Scripts>
+                    <OnUpdateModel>
+                        C_CooldownFrame_OnUpdateModelReversed()
+                    </OnUpdateModel>
+                </Scripts>
+            </Model>            
         </Frames>
         <Scripts>
             <OnLoad>

@@ -75,3 +75,32 @@ function C_IsMouseOver(frame)
     
     return x >= left and x <= right and y >= bottom and y <= top
 end
+
+function C_CooldownFrame_Set(frame, start, duration, enable)
+	if enable and enable ~= 0 and start > 0 and duration > 0 then
+        frame.startReversed = start
+        frame.durationReversed = duration
+        frame.stoppingReversed = 0
+        frame:Show()
+	else
+		frame:Hide()
+	end
+end
+
+function C_CooldownFrame_Clear(frame)
+	frame:Hide()
+end
+
+function C_CooldownFrame_OnUpdateModelReversed()
+    if this.stoppingReversed == 0 then
+		local finished = (GetTime() - this.startReversed) / this.durationReversed
+		if finished < 1.0 then
+			local time = (1 - finished) * 1000
+			this:SetSequenceTime(0, time)
+			return
+		end
+		this.stoppingReversed = 1
+	else
+        this:Hide()
+	end
+end
