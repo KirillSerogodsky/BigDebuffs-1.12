@@ -74,11 +74,10 @@
                 BigDebuffs:SaveUnitFramePosition(this)
             </OnDragStop>
             <OnUpdate>
-				<!-- TODO no IsMouseOver
-                if ( this:IsMouseOver() and BigDebuffs.db.profile.unitFrames.tooltips ) then
+                if ( C_IsMouseOver(this) and BigDebuffs.db.profile.unitFrames.tooltips ) then
 					GameTooltip:SetOwner(this, "ANCHOR_RIGHT", 0, 0);
 					if this.interrupt then
-						GameTooltip:SetSpellByID(this.interrupt)
+						-- TODO GameTooltip:SetSpellByID(this.interrupt)
 					elseif this.buff then
 						GameTooltip:SetUnitBuff(this.unit, this:GetID());
 					else
@@ -86,7 +85,7 @@
 					end
 				elseif GameTooltip:IsOwned(this) then
 					GameTooltip:Hide();
-				end -->
+				end
 			</OnUpdate>
         </Scripts>
     </Button>

@@ -62,3 +62,16 @@ function C_UnitBuff(unit, index, showCastable)
 
     return name, texture, applications, type, duration, expire, caster, steal, consolidate, id
 end
+
+function C_IsMouseOver(frame)
+    local x, y = GetCursorPosition()
+    local scale = frame:GetEffectiveScale()
+    local left = frame:GetLeft()
+    local right = frame:GetRight()
+    local top = frame:GetTop()
+    local bottom = frame:GetBottom()
+
+    x, y = x / scale, y / scale
+    
+    return x >= left and x <= right and y >= bottom and y <= top
+end
