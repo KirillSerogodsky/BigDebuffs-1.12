@@ -118,13 +118,13 @@ for spellID, spell in pairs(BigDebuffs.Spells) do
                         BigDebuffs:Refresh()
                     end,
                     args = {
-                        raidFrames = raidFrames and {
-                            type = "toggle",
-                            name = L["Raid Frames"],
-                            desc = L["Show this spell on the raid frames"],
-                            width = "full",
-                            order = 1,
-                        } or nil,
+                        -- raidFrames = raidFrames and {
+                        --     type = "toggle",
+                        --     name = L["Raid Frames"],
+                        --     desc = L["Show this spell on the raid frames"],
+                        --     width = "full",
+                        --     order = 1,
+                        -- } or nil,
                         unitFrames = {
                             type = "toggle",
                             name = L["Unit Frames"],
@@ -253,262 +253,262 @@ function BigDebuffs:SetupOptions()
                 func = "Test",
                 handler = BigDebuffs,
             },
-            raidFrames = {
-                name = L["Raid Frames"],
-                type = "group",
-                disabled = function(info) return info[2] and not self.db.profile[info[1]].enabled end,
-                order = 10,
-                get = function(info) local name = info[tgetn(info)] return self.db.profile.raidFrames[name] end,
-                set = function(info, value)
-                    local name = info[tgetn(info)]
-                    self.db.profile.raidFrames[name] = value
-                    self:Refresh()
-                end,
-                args = {
-                    enabled = {
-                        type = "toggle",
-                        width = "normal",
-                        disabled = false,
-                        name = L["Enabled"],
-                        desc = L["Enable BigDebuffs on raid frames"],
-                        order = 1,
-                    },
-                    hideBliz = {
-                        type = "toggle",
-                        width = "normal",
-                        name = L["Hide Other Debuffs"],
-                        set = function(info, value)
-                            if value then
-                                self.db.profile.raidFrames.redirectBliz = false
-                            end
-                            self.db.profile.raidFrames.hideBliz = value
-                            self:Refresh()
-                        end,
-                        desc = L["Hides other debuffs when BigDebuffs are displayed"],
-                        order = 2,
-                    },
-                    redirectBliz = {
-                        type = "toggle",
-                        width = "normal",
-                        name = L["Redirect Other Debuffs"],
-                        set = function(info, value)
-                            if value then
-                                self.db.profile.raidFrames.hideBliz = false
-                            end
-                            self.db.profile.raidFrames.redirectBliz = value
-                            self:Refresh()
-                        end,
-                        desc = L["Redirects other debuffs to the BigDebuffs anchor"],
-                        order = 3,
-                    },
-                    showAllClassBuffs = {
-                        type = "toggle",
-                        width = "normal",
-                        name = L["Show All Class Buffs"],
-                        desc = L["Show all the buffs our class can apply"],
-                        order = 4,
-                    },
-                    increaseBuffs = {
-                        type = "toggle",
-                        width = "normal",
-                        name = L["Increase Maximum Buffs"],
-                        desc = L["Sets the maximum buffs to 6"],
-                        order = 5,
-                    },
-                    cooldownCount = {
-                        type = "toggle",
-                        width = "normal",
-                        name = L["Cooldown Count"],
-                        desc = L["Allow Blizzard and other addons to display countdown text on the icons"],
-                        order = 6,
-                    },
-                    maxDebuffs = {
-                        type = "range",
-                        name = L["Max Debuffs"],
-                        desc = L["Set the maximum number of debuffs displayed"],
-                        min = 1,
-                        max = 20,
-                        step = 1,
-                        order = 10,
-                    },
-                    anchor = {
-                        name = L["Anchor"],
-                        desc = L["Anchor to attach the BigDebuffs frames"],
-                        type = "select",
-                        values = {
-                            ["INNER"] = L["INNER"],
-                            ["LEFT"] = L["LEFT"],
-                            ["RIGHT"] = L["RIGHT"],
-                            ["TOP"] = L["TOP"],
-                            ["BOTTOM"] = L["BOTTOM"],
-                        },
-                        order = 11,
-                    },
-                    scale = {
-                        name = L["Size"],
-                        type = "group",
-                        inline = true,
-                        order = 20,
-                        get = function(info)
-                            local name = info[tgetn(info)]
-                            return self.db.profile.raidFrames[name]/100
-                        end,
-                        set = function(info, value)
-                            local name = info[tgetn(info)]
-                            self.db.profile.raidFrames[name] = value*100
-                            self:Refresh()
-                        end,
-                        args = {
-                            dispellable = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Dispellable CC"],
-                                desc = L["Set the size of dispellable crowd control debuffs"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 1,
-                                get = function(info)
-                                    local name = info[tgetn(info)]
-                                    return self.db.profile.raidFrames.dispellable.cc/100
-                                end,
-                                set = function(info, value)
-                                    local name = info[tgetn(info)]
-                                    self.db.profile.raidFrames.dispellable.cc = value*100
-                                    self:Refresh()
-                                end,
-                            },
-                            cc = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Other CC"],
-                                desc = L["Set the size of crowd control debuffs"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 2,
-                            },
-                            dispellableRoots = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Dispellable Roots"],
-                                desc = L["Set the size of dispellable roots"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 4,
-                                get = function(info)
-                                    local name = info[tgetn(info)]
-                                    return self.db.profile.raidFrames.dispellable.roots/100
-                                end,
-                                set = function(info, value)
-                                    local name = info[tgetn(info)]
-                                    self.db.profile.raidFrames.dispellable.roots= value*100
-                                    self:Refresh()
-                                end,
-                            },
-                            roots = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Other Roots"],
-                                desc = L["Set the size of roots"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 5,
-                            },
-                            debuffs_offensive = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Offensive Debuffs"],
-                                desc = L["Set the size of offensive debuffs"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 7,
-                            },
-                            default = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Other Debuffs"],
-                                desc = L["Set the size of other debuffs"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 8,
-                            },
-                            pve = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Dispellable PvE"],
-                                desc = L["Set the size of dispellable PvE debuffs"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 3,
-                            },
-                            interrupts = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["interrupts"],
-                                desc = L["Set the size of interrupts"],
-                                min = 0,
-                                max = 1,
-                                step = 0.01,
-                                order = 9,
-                            },
-                            --[[buffs = {
-                                type = "range",
-                                isPercent = true,
-                                name = L["Buffs"],
-                                desc = L["Set the size of buffs"],
-                                min = 0,
-                                max = 0.5,
-                                step = 0.01,
-                                order = 10,
-                            },]]
-                        },
-                    },
-                    inRaid = {
-                        name = L["Extras"],
-                        order = 40,
-                        type = "group",
-                        inline = true,
-                        get = function(info)
-                            local name = info[tgetn(info)]
-                            return self.db.profile.raidFrames.inRaid[name]
-                        end,
-                        set = function(info, value)
-                            local name = info[tgetn(info)]
-                            self.db.profile.raidFrames.inRaid[name] = value
-                            self:Refresh()
-                        end,
-                        args = {
-                            hide = {
-                                name = L["Hide in Raids"],
-                                desc = L["Hide BigDebuffs in Raids"],
-                                type = "toggle",
-                                order = 1
-                            },
-                            size = {
-                                type = "range",
-                                disabled = function(info)
-                                    local name = info[2]
-                                    return not self.db.profile.raidFrames[name].hide
-                                end,
-                                name = L["Group Size"],
-                                desc = L["Hides BigDebuffs for groups larger than group size"],
-                                width = "double",
-                                min = 5,
-                                max = 40,
-                                step = 5,
-                                order = 2
-                            }
-                        }
-                    }
+            -- raidFrames = {
+            --     name = L["Raid Frames"],
+            --     type = "group",
+            --     disabled = function(info) return info[2] and not self.db.profile[info[1]].enabled end,
+            --     order = 10,
+            --     get = function(info) local name = info[tgetn(info)] return self.db.profile.raidFrames[name] end,
+            --     set = function(info, value)
+            --         local name = info[tgetn(info)]
+            --         self.db.profile.raidFrames[name] = value
+            --         self:Refresh()
+            --     end,
+            --     args = {
+            --         enabled = {
+            --             type = "toggle",
+            --             width = "normal",
+            --             disabled = false,
+            --             name = L["Enabled"],
+            --             desc = L["Enable BigDebuffs on raid frames"],
+            --             order = 1,
+            --         },
+            --         hideBliz = {
+            --             type = "toggle",
+            --             width = "normal",
+            --             name = L["Hide Other Debuffs"],
+            --             set = function(info, value)
+            --                 if value then
+            --                     self.db.profile.raidFrames.redirectBliz = false
+            --                 end
+            --                 self.db.profile.raidFrames.hideBliz = value
+            --                 self:Refresh()
+            --             end,
+            --             desc = L["Hides other debuffs when BigDebuffs are displayed"],
+            --             order = 2,
+            --         },
+            --         redirectBliz = {
+            --             type = "toggle",
+            --             width = "normal",
+            --             name = L["Redirect Other Debuffs"],
+            --             set = function(info, value)
+            --                 if value then
+            --                     self.db.profile.raidFrames.hideBliz = false
+            --                 end
+            --                 self.db.profile.raidFrames.redirectBliz = value
+            --                 self:Refresh()
+            --             end,
+            --             desc = L["Redirects other debuffs to the BigDebuffs anchor"],
+            --             order = 3,
+            --         },
+            --         showAllClassBuffs = {
+            --             type = "toggle",
+            --             width = "normal",
+            --             name = L["Show All Class Buffs"],
+            --             desc = L["Show all the buffs our class can apply"],
+            --             order = 4,
+            --         },
+            --         increaseBuffs = {
+            --             type = "toggle",
+            --             width = "normal",
+            --             name = L["Increase Maximum Buffs"],
+            --             desc = L["Sets the maximum buffs to 6"],
+            --             order = 5,
+            --         },
+            --         cooldownCount = {
+            --             type = "toggle",
+            --             width = "normal",
+            --             name = L["Cooldown Count"],
+            --             desc = L["Allow Blizzard and other addons to display countdown text on the icons"],
+            --             order = 6,
+            --         },
+            --         maxDebuffs = {
+            --             type = "range",
+            --             name = L["Max Debuffs"],
+            --             desc = L["Set the maximum number of debuffs displayed"],
+            --             min = 1,
+            --             max = 20,
+            --             step = 1,
+            --             order = 10,
+            --         },
+            --         anchor = {
+            --             name = L["Anchor"],
+            --             desc = L["Anchor to attach the BigDebuffs frames"],
+            --             type = "select",
+            --             values = {
+            --                 ["INNER"] = L["INNER"],
+            --                 ["LEFT"] = L["LEFT"],
+            --                 ["RIGHT"] = L["RIGHT"],
+            --                 ["TOP"] = L["TOP"],
+            --                 ["BOTTOM"] = L["BOTTOM"],
+            --             },
+            --             order = 11,
+            --         },
+            --         scale = {
+            --             name = L["Size"],
+            --             type = "group",
+            --             inline = true,
+            --             order = 20,
+            --             get = function(info)
+            --                 local name = info[tgetn(info)]
+            --                 return self.db.profile.raidFrames[name]/100
+            --             end,
+            --             set = function(info, value)
+            --                 local name = info[tgetn(info)]
+            --                 self.db.profile.raidFrames[name] = value*100
+            --                 self:Refresh()
+            --             end,
+            --             args = {
+            --                 dispellable = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Dispellable CC"],
+            --                     desc = L["Set the size of dispellable crowd control debuffs"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 1,
+            --                     get = function(info)
+            --                         local name = info[tgetn(info)]
+            --                         return self.db.profile.raidFrames.dispellable.cc/100
+            --                     end,
+            --                     set = function(info, value)
+            --                         local name = info[tgetn(info)]
+            --                         self.db.profile.raidFrames.dispellable.cc = value*100
+            --                         self:Refresh()
+            --                     end,
+            --                 },
+            --                 cc = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Other CC"],
+            --                     desc = L["Set the size of crowd control debuffs"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 2,
+            --                 },
+            --                 dispellableRoots = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Dispellable Roots"],
+            --                     desc = L["Set the size of dispellable roots"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 4,
+            --                     get = function(info)
+            --                         local name = info[tgetn(info)]
+            --                         return self.db.profile.raidFrames.dispellable.roots/100
+            --                     end,
+            --                     set = function(info, value)
+            --                         local name = info[tgetn(info)]
+            --                         self.db.profile.raidFrames.dispellable.roots= value*100
+            --                         self:Refresh()
+            --                     end,
+            --                 },
+            --                 roots = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Other Roots"],
+            --                     desc = L["Set the size of roots"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 5,
+            --                 },
+            --                 debuffs_offensive = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Offensive Debuffs"],
+            --                     desc = L["Set the size of offensive debuffs"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 7,
+            --                 },
+            --                 default = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Other Debuffs"],
+            --                     desc = L["Set the size of other debuffs"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 8,
+            --                 },
+            --                 pve = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Dispellable PvE"],
+            --                     desc = L["Set the size of dispellable PvE debuffs"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 3,
+            --                 },
+            --                 interrupts = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["interrupts"],
+            --                     desc = L["Set the size of interrupts"],
+            --                     min = 0,
+            --                     max = 1,
+            --                     step = 0.01,
+            --                     order = 9,
+            --                 },
+            --                 --[[buffs = {
+            --                     type = "range",
+            --                     isPercent = true,
+            --                     name = L["Buffs"],
+            --                     desc = L["Set the size of buffs"],
+            --                     min = 0,
+            --                     max = 0.5,
+            --                     step = 0.01,
+            --                     order = 10,
+            --                 },]]
+            --             },
+            --         },
+            --         inRaid = {
+            --             name = L["Extras"],
+            --             order = 40,
+            --             type = "group",
+            --             inline = true,
+            --             get = function(info)
+            --                 local name = info[tgetn(info)]
+            --                 return self.db.profile.raidFrames.inRaid[name]
+            --             end,
+            --             set = function(info, value)
+            --                 local name = info[tgetn(info)]
+            --                 self.db.profile.raidFrames.inRaid[name] = value
+            --                 self:Refresh()
+            --             end,
+            --             args = {
+            --                 hide = {
+            --                     name = L["Hide in Raids"],
+            --                     desc = L["Hide BigDebuffs in Raids"],
+            --                     type = "toggle",
+            --                     order = 1
+            --                 },
+            --                 size = {
+            --                     type = "range",
+            --                     disabled = function(info)
+            --                         local name = info[2]
+            --                         return not self.db.profile.raidFrames[name].hide
+            --                     end,
+            --                     name = L["Group Size"],
+            --                     desc = L["Hides BigDebuffs for groups larger than group size"],
+            --                     width = "double",
+            --                     min = 5,
+            --                     max = 40,
+            --                     step = 5,
+            --                     order = 2
+            --                 }
+            --             }
+            --         }
 
-                }
-            },
+            --     }
+            -- },
             unitFrames = {
                 name = L["Unit Frames"],
                 type = "group",
