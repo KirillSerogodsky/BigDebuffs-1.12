@@ -338,11 +338,11 @@ local GetAnchor = {
             return
         end
     end,
-    pfUIFrames = function(anchor)
+    pfUI = function(anchor)
         local frame = _G[anchor]
         if not frame then return end
         if frame.config.portrait == "left" or frame.config.portrait == "right" then
-            return frame.portrait, frame
+            return frame.portrait, frame.portrait, false
         else
             return nil -- TODO: "bar", "off"
         end
@@ -484,7 +484,7 @@ local anchors = {
         },
     },
     ["pfUI"] = {
-        func = GetAnchor.pfUIFrames,
+        func = GetAnchor.pfUI,
         -- noPortait = true,
         units = {
             player = "pfPlayer",
@@ -649,6 +649,7 @@ function BigDebuffs:AttachUnitFrame(unit)
                     if v.noPortait then frame.noPortait = true end
                     frame.alignLeft = v.alignLeft
                     frame.blizzard = (k == "Blizzard" or k == "sArena")
+                    frame.pfUI = k == "pfUI"
                     if not frame.blizzard then break end
                 end
             end
@@ -679,7 +680,14 @@ function BigDebuffs:AttachUnitFrame(unit)
             frame.cooldown:SetFrameLevel(frame:GetFrameLevel()) 
         else
             frame:SetParent(frame.parent and frame.parent or frame.anchor)
-            frame:SetFrameLevel(99)
+
+            if frame.pfUI then
+                frame:SetFrameLevel(2)
+                frame.cooldown:SetFrameLevel(2)
+            else
+                fame:SetFrameLevel(99)
+                frame.cooldown:SetFrameLevel(99)
+            end
         end
 
         frame:ClearAllPoints()
@@ -1568,7 +1576,12 @@ function BigDebuffs:UNIT_AURA(unit)
                 SetPortraitToTexture(frame.icon, icon)
             else
                 frame.icon:SetTexture(icon)
-                frame.icon:SetTexCoord(0, 1, 0, 1)
+
+                if frame.pfUI then
+                    frame.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+                else
+                    frame.icon:SetTexCoord(0, 1, 0, 1)
+                end
             end
         end
 
