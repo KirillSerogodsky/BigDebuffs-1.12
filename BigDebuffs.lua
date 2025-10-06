@@ -502,16 +502,16 @@ local anchors = {
             player = "PlayerPortrait",
             pet = "PetPortrait",
             target = "TargetPortrait",
-            focus = "FocusFramePortrait",
+            -- focus = "FocusFramePortrait",
             party1 = "PartyMemberFrame1Portrait",
             party2 = "PartyMemberFrame2Portrait",
             party3 = "PartyMemberFrame3Portrait",
             party4 = "PartyMemberFrame4Portrait",
-            arena1 = "ArenaEnemyFrame1ClassPortrait",
-            arena2 = "ArenaEnemyFrame2ClassPortrait",
-            arena3 = "ArenaEnemyFrame3ClassPortrait",
-            arena4 = "ArenaEnemyFrame4ClassPortrait",
-            arena5 = "ArenaEnemyFrame5ClassPortrait",
+            -- arena1 = "ArenaEnemyFrame1ClassPortrait",
+            -- arena2 = "ArenaEnemyFrame2ClassPortrait",
+            -- arena3 = "ArenaEnemyFrame3ClassPortrait",
+            -- arena4 = "ArenaEnemyFrame4ClassPortrait",
+            -- arena5 = "ArenaEnemyFrame5ClassPortrait",
         },
     },
 }
@@ -663,6 +663,9 @@ function BigDebuffs:AttachUnitFrame(unit)
             frame:SetParent(parent)
             if unit == "player" then
                 frame:SetFrameLevel(parent:GetFrameLevel() + 1)
+            elseif sfind(unit, "party") then
+                parent:SetFrameLevel(1) -- fix sometimes portrait has 2
+                frame:SetFrameLevel(parent:GetFrameLevel())
             else
                 frame:SetFrameLevel(parent:GetFrameLevel())
             end
@@ -672,6 +675,8 @@ function BigDebuffs:AttachUnitFrame(unit)
             elseif frame.anchor.SetDrawLayer then
                 frame.anchor:SetDrawLayer("BACKGROUND")
             end
+
+            frame.cooldown:SetFrameLevel(frame:GetFrameLevel()) 
         else
             frame:SetParent(frame.parent and frame.parent or frame.anchor)
             frame:SetFrameLevel(99)
@@ -720,10 +725,16 @@ function BigDebuffs:AttachUnitFrame(unit)
             if not config.matchFrameHeight then
                 frame:SetWidth(config.size)
                 frame:SetHeight(config.size)
+                if (config.size / 36 > 0) then
+                    frame.cooldown:SetScale(config.size / 36)
+                end
             else
                 local height = frame.anchor:GetHeight()
                 frame:SetWidth(height)
                 frame:SetHeight(height)
+                if (height / 36 > 0) then
+                    frame.cooldown:SetScale(height / 36)
+                end
             end
         else
             if frame.blizzard then
