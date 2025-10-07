@@ -237,6 +237,7 @@ addon.Spells = {
         [14279] = { parent = 3034 },
         [14280] = { parent = 3034 },
     -- [409368] = { type = BUFF_OFFENSIVE }, -- Beast Mastery
+    [13810] = { type = ROOT }, -- Frost Trap Aura
 
     -- Druid
 
@@ -363,5 +364,6 @@ addon.Spells = {
     [12809] = { type = CROWD_CONTROL }, -- Concussion Blow
     [7922] = { type = CROWD_CONTROL }, -- Charge Stun
     [5530] = { type = CROWD_CONTROL }, -- Mace Spec Stun (Warrior & Rogue)
+    [23600] = { type = ROOT }, -- Piercing Howl
 
 }
