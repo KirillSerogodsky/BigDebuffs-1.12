@@ -1,6 +1,5 @@
 local BigDebuffs = LibStub("AceAddon-3.0"):GetAddon("BigDebuffs")
 local L = LibStub("AceLocale-3.0"):GetLocale("BigDebuffs")
-local LibSharedMedia = LibStub("LibSharedMedia-3.0")
 
 local GetSpellTexture = C_GetSpellTexture
 local GetSpellInfo = C_GetSpellInfo
