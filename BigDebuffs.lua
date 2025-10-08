@@ -13,7 +13,6 @@ local CooldownFrame_Set = C_CooldownFrame_Set
 local CooldownFrame_Clear = C_CooldownFrame_Clear
 
 BigDebuffs = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceHook-3.0")
-local LibSharedMedia = LibStub("LibSharedMedia-3.0")
 
 -- Defaults
 local defaults = {

@@ -1,7 +1,7 @@
 ## Interface: 11200
 ## Title: BigDebuffs
 ## Notes: Increases the debuff size of crowd control effects on the Blizzard CompactRaidFrames
-## Version: 1.2
+## Version: 1.3
 ## Author: Jordon, Tsoukie
 ## SavedVariables: BigDebuffsDB
 
@@ -17,7 +17,6 @@ Libs\AceHook-3.0\AceHook-3.0.xml
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\AceLocale-3.0\AceLocale-3.0.xml
-Libs\LibSharedMedia-3.0\lib.xml
 #@end-no-lib-strip@
 
 Compat.lua
