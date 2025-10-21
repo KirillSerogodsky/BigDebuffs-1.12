@@ -42,4 +42,4 @@ This project is maintained by [**me**](https://github.com/KirillSerogodsky) and 
 
 #### ⋮ CONTRIBUTORS
 
-This project is based on [**BigDebuffs**](https://www.curseforge.com/wow/addons/bigdebuffs) by [**Jordan**](https://www.curseforge.com/members/jordons/projects), [BigDebuffs-3.3.5](https://gitlab.com/Tsoukie/bigdebuffs-3.3.5) by [Tsoukie](https://gitlab.com/Tsoukie).
+This project is based on [**BigDebuffs**](https://www.curseforge.com/wow/addons/bigdebuffs) by [**Jordan**](https://www.curseforge.com/members/jordons/projects), [**BigDebuffs-3.3.5**](https://gitlab.com/Tsoukie/bigdebuffs-3.3.5) by [**Tsoukie**](https://gitlab.com/Tsoukie).
