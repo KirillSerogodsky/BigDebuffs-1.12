@@ -1,4 +1,4 @@
-local ACECORE_MAJOR, ACECORE_MINOR = "AceCore-3.0", 2
+local ACECORE_MAJOR, ACECORE_MINOR = "AceCore-3.0", 3
 local AceCore, oldminor = LibStub:NewLibrary(ACECORE_MAJOR, ACECORE_MINOR)
 
 if not AceCore then return end -- No upgrade needed
@@ -207,3 +207,89 @@ function AceCore.truncate(t,e)
 	end
 	tsetn(t,e)
 end
+
+local tolerance = 1
+local function compareCoords(a, b)
+	local a = a or 0
+	local b = b or 0
+    return math.abs((a or 0) - (b or 0)) < tolerance
+end
+
+local function SetPoint(frame, a1, a2, a3, a4, a5)
+	if not frame or type(frame) ~= "table" then return end
+
+	local point, relativeFrame, relativePoint, ofsx, ofsy
+	-- point, relativeFrame, relativePoint, ofsx, ofsy
+    if type(a2) == "table" then
+		point = a1
+        relativeFrame = a2
+        relativePoint = a3 or a1
+        ofsx = a4 or 0
+        ofsy = a5 or 0
+	-- point, ofsx, ofsy
+    elseif type(a2) == "number" then
+		point = a1
+        relativeFrame = frame:GetParent()
+        relativePoint = a1
+        ofsx = a2 or 0
+        ofsy = a3 or 0
+    else
+		return
+    end
+	
+	local changed = false
+	local numPoints = frame:GetNumPoints()
+	
+	if numPoints == 0 then
+		--print(1)
+		changed = true
+	else
+		local found = false
+		for i = 1, numPoints do
+			local p1, p2, p3, p4, p5 = frame:GetPoint(i)
+			if p1 == point and
+			   p2 == relativeFrame and
+			   p3 == relativePoint and
+			   compareCoords(p4, ofsx) and
+			   compareCoords(p5, ofsy) then
+				found = true
+				break
+			end
+		end
+		changed = not found
+	end
+	
+	if changed then
+		--print("SetPoint", frame, point, relativeFrame, relativePoint, ofsx, ofsy, GetTime())
+		frame:SetPoint(point, relativeFrame, relativePoint, ofsx, ofsy)
+	end
+end
+AceCore.SetPoint = SetPoint
+
+local function SetAllPoints(frame, relativeRegion)
+	if not frame 
+		or type(frame) ~= "table"
+		or not relativeRegion 
+		or type(relativeRegion) ~= "table" then 
+		return
+	end
+
+	local frameNumPoints = frame:GetNumPoints()
+	local changed = false
+
+	if frameNumPoints ~= 2 then
+		changed = true
+	else
+		for i, anchor in pairs({ "TOPLEFT", "BOTTOMRIGHT" }) do
+			local a1, a2 = frame:GetPoint(i)
+			if a1 ~= anchor or a2 ~= relativeRegion then
+				changed = true
+			end
+		end
+	end
+
+	if changed then
+		frame:SetAllPoints(relativeRegion)
+	end
+end
+AceCore.SetAllPoints = SetAllPoints

@@ -25,7 +25,7 @@
 -- @class file
 -- @name AceGUI-3.0
 -- @release $Id: AceGUI-3.0.lua 1102 2013-10-25 14:15:23Z nevcairiel $
-local ACEGUI_MAJOR, ACEGUI_MINOR = "AceGUI-3.0", 35
+local ACEGUI_MAJOR, ACEGUI_MINOR = "AceGUI-3.0", 36
 local AceGUI, oldminor = LibStub:NewLibrary(ACEGUI_MAJOR, ACEGUI_MINOR)
 
 if not AceGUI then return end -- No upgrade needed
@@ -48,8 +48,6 @@ local UIParent = UIParent
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
 -- List them here for Mikk's FindGlobals script
 -- GLOBALS: geterrorhandler, LibStub
-
---local con = LibStub("AceConsole-3.0",true)
 
 AceGUI.WidgetRegistry = AceGUI.WidgetRegistry or {}
 AceGUI.LayoutRegistry = AceGUI.LayoutRegistry or {}
@@ -660,7 +658,8 @@ local function safelayoutcall(object, func, a1)
 	layoutrecursionblock = nil
 end
 
-AceGUI:RegisterLayout("Flow",
+-- Old Flow Layout
+AceGUI:RegisterLayout("_Flow",
 	function(content, children)
 		if layoutrecursionblock then return end
 		--used height so far
@@ -791,3 +790,106 @@ AceGUI:RegisterLayout("Flow",
 		height = height + rowheight + 3
 		safecall(content.obj.LayoutFinished, 3, content.obj, nil, height)
 	end)
+
+local ROW_OFFSET = 4
+
+AceGUI:RegisterLayout("Flow", function(content, children)
+	if layoutrecursionblock then return end
+
+	local contentWidth = content.width or content:GetWidth()
+	local contentHeight = content.height or content:GetHeight()
+	local totalHeight  = 0 -- total height of all children
+	local rowWidth     = 0 -- total width of current row
+	local rowHeight    = 0 -- total height of current row
+	local firstInRowChild  -- first child in row
+	local prevChild        -- previous child in row
+
+	for i = 1, tgetn(children) do
+		local child       = children[i]
+		local childFrame  = child.frame
+		local childWidth  = childFrame.width or childFrame:GetWidth()
+		local childHeight = childFrame.height or childFrame:GetHeight()
+		local offset      = child.alignoffset or childHeight / 2
+
+		if i == 1 then
+			firstInRowChild = childFrame
+		end
+
+		local isFirstInRow = firstInRowChild == childFrame
+		local relativeFrame = isFirstInRow and content or firstInRowChild
+		local relativePoint = isFirstInRow and "TOPLEFT" or "BOTTOMLEFT"
+
+		-- responsive width + height
+		if child.width == "fill" and child.height == "fill" then
+			safelayoutcall(child, "SetWidth", contentWidth)
+
+			AceCore.SetPoint(childFrame, "TOPLEFT", relativeFrame, relativePoint, 0, -ROW_OFFSET)
+			AceCore.SetPoint(childFrame, "BOTTOMRIGHT", content)
+
+			if child.DoLayout then
+				child:DoLayout()
+			end
+
+			totalHeight     = totalHeight + childHeight + ROW_OFFSET
+			firstInRowChild = childFrame   -- go to next line after this child
+			rowWidth        = contentWidth -- force move to next line
+		-- responsive width
+		elseif child.width == "fill" then
+			safelayoutcall(child, "SetWidth", contentWidth)
+
+			AceCore.SetPoint(childFrame, "TOPLEFT", relativeFrame, relativePoint, 0, -ROW_OFFSET)
+			--AceCore.SetPoint(childFrame, "TOPRIGHT", content)
+
+			if child.DoLayout then
+				child:DoLayout()
+			end
+
+			totalHeight     = totalHeight + childHeight + ROW_OFFSET
+			firstInRowChild = childFrame   -- go to next line after this child
+			rowWidth        = contentWidth -- force move to next line
+		else
+			if child.width == "relative" then
+				childWidth = contentWidth * child.relWidth
+
+				safelayoutcall(child, "SetWidth", childWidth)
+
+				if child.DoLayout then
+					child:DoLayout()
+				end
+			end
+
+			if i == 1 then
+				AceCore.SetPoint(childFrame, "TOPLEFT", content)
+				rowWidth        = childWidth
+				rowHeight       = childHeight
+				firstInRowChild = childFrame
+			else
+				-- move child to next line
+				if childWidth + rowWidth > contentWidth then
+					AceCore.SetPoint(childFrame, "TOPLEFT", firstInRowChild, "BOTTOMLEFT", 0, -ROW_OFFSET)
+
+					totalHeight     = totalHeight + rowHeight + ROW_OFFSET
+					rowWidth        = childWidth
+					rowHeight       = childHeight
+					firstInRowChild = childFrame -- go to next line after this child
+				-- move child after prev child
+				else
+					local offsetY = 0
+
+					if childHeight < rowHeight then
+						offsetY = (rowHeight - childHeight) / 2
+					end
+
+					AceCore.SetPoint(childFrame, "TOPLEFT", prevChild, "TOPRIGHT", 0, -offsetY)
+					rowWidth = rowWidth + childWidth
+					rowHeight = math_max(rowHeight, childHeight)
+				end
+			end
+
+			prevChild = childFrame
+		end
+	end
+
+	totalHeight = totalHeight + rowHeight
+	safecall(content.obj.LayoutFinished, 3, content.obj, nil, totalHeight)
+end)

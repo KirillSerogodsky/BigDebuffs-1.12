@@ -366,4 +366,7 @@ addon.Spells = {
     [5530] = { type = CROWD_CONTROL }, -- Mace Spec Stun (Warrior & Rogue)
     [23600] = { type = ROOT }, -- Piercing Howl
 
+    -- Test
+    -- [20293] = { type = ROOT },
+    -- [21084] = { type = ROOT },
 }

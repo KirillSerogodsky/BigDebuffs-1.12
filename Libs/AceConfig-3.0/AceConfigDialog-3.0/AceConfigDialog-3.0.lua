@@ -4,7 +4,7 @@
 -- @release $Id: AceConfigDialog-3.0.lua 1139 2016-07-03 07:43:51Z nevcairiel $
 
 local LibStub = LibStub
-local MAJOR, MINOR = "AceConfigDialog-3.0", 70
+local MAJOR, MINOR = "AceConfigDialog-3.0", 71
 local AceConfigDialog, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
 
 if not AceConfigDialog then return end
@@ -2045,7 +2045,8 @@ end
 		frame:SetStatusText("Addons configuration panel")
 		frame:SetCallback("OnClose", function(widget) gui:Release(widget); _G["AddonConfigFrame"] = nil end)
 		frame:SetLayout("Flow")
-		frame:SetWidth(850)
+		frame:SetWidth(858)
+		frame:SetHeight(660)
 		-- Create the TreeGroup
 		local tg = gui:Create("TreeGroup")
 		tg:SetLayout("Flow")

@@ -2,7 +2,7 @@
 TreeGroup Container
 Container that uses a tree control to switch between groups.
 -------------------------------------------------------------------------------]]
-local Type, Version = "TreeGroup", 42
+local Type, Version = "TreeGroup", 43
 local AceGUI = LibStub and LibStub("AceGUI-3.0", true)
 if not AceGUI or (AceGUI:GetWidgetVersion(Type) or 0) >= Version then return end
 
@@ -18,6 +18,9 @@ local strfmt = string.format
 
 -- WoW APIs
 local CreateFrame, UIParent = CreateFrame, UIParent
+
+-- Constants
+local BUTTON_HEIGHT = 18
 
 -- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
 -- List them here for Mikk's FindGlobals script
@@ -88,11 +91,11 @@ local function UpdateButton(button, treeline, selected, canExpand, isExpanded)
 	if ( level == 1 ) then
 		button.text:SetFontObject("GameFontNormal")
 		button:SetHighlightFontObject("GameFontHighlight")
-		button.text:SetPoint("LEFT", (icon and 16 or 0) + 8, 2)
+		AceCore.SetPoint(button.text, "LEFT", (icon and 16 or 0) + 8, 2)
 	else
 		button.text:SetFontObject("GameFontHighlightSmall")
 		button:SetHighlightFontObject("GameFontHighlightSmall")
-		button.text:SetPoint("LEFT", (icon and 16 or 0) + 8 * level, 2)
+		AceCore.SetPoint(button.text, "LEFT", (icon and 16 or 0) + 8 * level, 2)
 	end
 
 	if disabled then
@@ -105,7 +108,7 @@ local function UpdateButton(button, treeline, selected, canExpand, isExpanded)
 
 	if icon then
 		button.icon:SetTexture(icon)
-		button.icon:SetPoint("LEFT", 8 * level, (level == 1) and 0 or 1)
+		AceCore.SetPoint(button.icon, "LEFT", 8 * level, (level == 1) and 0 or 1)
 	else
 		button.icon:SetTexture(nil)
 	end
@@ -336,32 +339,45 @@ methods = {
 		self.enabletooltips = enable
 	end,
 
-	["CreateButton"] = function(self)
+	["CreateButton"] = function(self, treeline)
 		local num = AceGUI:GetNextWidgetNum("TreeGroupButton")
+		local name = strfmt("AceGUI30TreeButton%d", num)
+    	local button = CreateFrame("Button", name, self.treeframe)
+		local lineLevel = treeline.level
+		local lineIcon = treeline.icon
 
-		local button = CreateFrame("Button", strfmt("AceGUI30TreeButton%d", num), self.treeframe)
 		button.obj = self
 		button:SetWidth(175)
-		button:SetHeight(18)
+		button:SetHeight(BUTTON_HEIGHT)
+		button:SetFrameLevel(self.treeframe:GetFrameLevel() + 1)
+		button:SetScript("OnClick", Button_OnClick)
+		button:SetScript("OnDoubleClick", Button_OnDoubleClick)
+		button:SetScript("OnEnter", Button_OnEnter)
+		button:SetScript("OnLeave", Button_OnLeave)
 
 		local toggle = CreateFrame("Button", nil, button)
 		toggle.obj = button
 		button.toggle = toggle
+		button.toggle.button = button
 		toggle:SetWidth(14)
 		toggle:SetHeight(14)
 		toggle:ClearAllPoints()
 		toggle:SetPoint("TOPRIGHT", button, "TOPRIGHT", -6, -1)
-		toggle:SetScript("OnClick", Button_OnClick)
 		toggle:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-UP")
 		toggle:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-DOWN")
 		toggle:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
+		toggle:SetScript("OnClick", Button_OnClick)
+		toggle:SetScript("OnClick", Expand_OnClick)
 
 		local text = button:CreateFontString()
 		button.text = text
 		text:SetFontObject(GameFontNormal)
 		button:SetHighlightFontObject(GameFontHighlight)
-		text:SetPoint("RIGHT", toggle, "LEFT", -2, 0);
+		text:SetPoint("RIGHT", toggle, "LEFT", -2, 0)
+		text:SetPoint("LEFT", (icon and 16 or 0) + 8 * lineLevel, 0)
+		text:SetPoint("TOP", 0, -2)
 		text:SetJustifyH("LEFT")
+		text:SetHeight(13)
 
 		local highlight = button:CreateTexture(nil, "HIGHLIGHT");
 		button.highlight = highlight
@@ -369,23 +385,17 @@ methods = {
 		highlight:SetBlendMode("ADD")
 		highlight:SetVertexColor(.196, .388, .8);
 		highlight:ClearAllPoints()
-		highlight:SetPoint("TOPLEFT",0,1)
-		highlight:SetPoint("BOTTOMRIGHT",0,1)
+		highlight:SetPoint("TOPLEFT", 0, 1)
+		highlight:SetPoint("BOTTOMRIGHT", 0, 1)
 
 		local icon = button:CreateTexture(nil, "OVERLAY")
+		button.icon = icon
 		icon:SetWidth(14)
 		icon:SetHeight(14)
-		button.icon = icon
-
-		button:SetScript("OnClick",Button_OnClick)
-		button:SetScript("OnDoubleClick", Button_OnDoubleClick)
-		button:SetScript("OnEnter",Button_OnEnter)
-		button:SetScript("OnLeave",Button_OnLeave)
-
-		button.toggle.button = button
-		button.toggle:SetScript("OnClick",Expand_OnClick)
-
-		button.text:SetHeight(14) -- Prevents text wrapping
+		icon:SetPoint("TOP", 0, -1)
+		if lineIcon then
+			icon:SetPoint("LEFT", 8 * lineLevel, (lineLevel == 1) and 0 or 1)
+		end
 
 		return button
 	end,
@@ -465,8 +475,7 @@ methods = {
 		self:BuildLevel(tree, 1)
 
 		local numlines = tgetn(lines)
-
-		local maxlines = (floor(((self.treeframe:GetHeight()or 0) - 20 ) / 18))
+		local maxlines = floor((treeframe:GetHeight() - 20) / BUTTON_HEIGHT)
 		if maxlines <= 0 then return end
 
 		local first, last
@@ -522,26 +531,21 @@ methods = {
 			local line = lines[i]
 			local button = buttons[buttonnum]
 			if not button then
-				button = self:CreateButton()
+				button = self:CreateButton(line)
 
 				buttons[buttonnum] = button
-				button:SetParent(treeframe)
-				button:SetFrameLevel(treeframe:GetFrameLevel()+1)
-				button:ClearAllPoints()
 				if buttonnum == 1 then
 					if self.showscroll then
-						button:SetPoint("TOPRIGHT", -22, -10)
 						button:SetPoint("TOPLEFT", 0, -10)
 					else
-						button:SetPoint("TOPRIGHT", 0, -10)
 						button:SetPoint("TOPLEFT", 0, -10)
 					end
 				else
-					button:SetPoint("TOPRIGHT", buttons[buttonnum-1], "BOTTOMRIGHT",0,0)
-					button:SetPoint("TOPLEFT", buttons[buttonnum-1], "BOTTOMLEFT",0,0)
+					button:SetPoint("TOPLEFT", buttons[buttonnum-1], "BOTTOMLEFT", 0, -1)
 				end
 			end
 
+			button:SetWidth(self.treeframe:GetWidth() - (self.showscroll and 22 or 0))
 			UpdateButton(button, line, status.selected == line.uniquevalue, line.hasChildren, groupstatus[line.uniquevalue] )
 			button:Show()
 			buttonnum = buttonnum + 1
@@ -592,12 +596,12 @@ methods = {
 		if show then
 			self.scrollbar:Show()
 			if self.buttons[1] then
-				self.buttons[1]:SetPoint("TOPRIGHT", self.treeframe,"TOPRIGHT",-22,-10)
+				AceCore.SetPoint(self.buttons[1], "TOPRIGHT", self.treeframe, "TOPRIGHT", -22, -10)
 			end
 		else
 			self.scrollbar:Hide()
 			if self.buttons[1] then
-				self.buttons[1]:SetPoint("TOPRIGHT", self.treeframe,"TOPRIGHT",0,-10)
+				AceCore.SetPoint(self.buttons[1], "TOPRIGHT", self.treeframe, "TOPRIGHT", 0, -10)
 			end
 		end
 	end,
