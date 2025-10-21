@@ -18,6 +18,11 @@ This is an addon designed to optimize your experience by hooking into unit frame
 
 <kbd>/bd</kbd>
 
+#### ⋮ Known issues
+
+- Add-on settings may cause the game to freeze (Spell tab)
+- Elements in the add-on settings may be misaligned
+
 <br />
 
 > [!WARNING]
