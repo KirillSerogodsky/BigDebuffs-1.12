@@ -63,6 +63,15 @@ function C_UnitBuff(unit, index, showCastable)
     return name, texture, applications, type, duration, expire, caster, steal, consolidate, id
 end
 
+function C_UnitAura(a1, a2, a3, a4)
+    print("C_UnitAura", a1, a2, a3, a4)
+end
+
+function C_IsPlayerSpell(spellId)
+     print("C_IsPlayerSpell", spellId)
+    return false -- TODO
+end
+
 function C_IsMouseOver(frame)
     local x, y = GetCursorPosition()
     local scale = frame:GetEffectiveScale()
@@ -99,3 +108,22 @@ function C_CooldownFrame_OnUpdateModelReversed()
     end
     this:Hide()
 end
+
+-- Timer
+local _G = _G
+
+local C_Timer = TimerFrame or CreateFrame("Frame", "TimerFrame")
+
+function C_Timer.After(arg1, arg2, arg3)
+end
+function C_Timer.NewTimer(arg1, arg2, arg3)
+end
+function C_Timer.NewTicker(arg1, arg2, arg3)
+end
+
+_G.C_Timer = C_Timer
+
+COMBATLOG_OBJECT_AFFILIATION_MINE = tonumber("00000001", 16)
+COMBATLOG_OBJECT_REACTION_FRIENDLY = tonumber("00000010", 16)
+COMBATLOG_OBJECT_CONTROL_PLAYER = tonumber("00000100", 16)
+COMBATLOG_OBJECT_TYPE_PLAYER = tonumber("00000400", 16)

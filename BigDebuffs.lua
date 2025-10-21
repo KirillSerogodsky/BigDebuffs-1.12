@@ -13,6 +13,8 @@ local CooldownFrame_Set = C_CooldownFrame_Set
 local CooldownFrame_Clear = C_CooldownFrame_Clear
 
 BigDebuffs = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceHook-3.0")
+local LibClassicDurations = LibStub("LibClassicDurations")
+LibClassicDurations:Register(addonName)
 
 -- Defaults
 local defaults = {
@@ -1506,6 +1508,11 @@ function BigDebuffs:UNIT_AURA(unit)
         local _, n, _, _, d, e, caster, _, _, id = UnitDebuff(unit, i)
         if id then
             if self.Spells[id] then
+                local durationNew, expirationTimeNew = LibClassicDurations:GetAuraDurationByUnit(unit, id, caster)
+                if d == 0 and durationNew then
+                    d = durationNew
+                    e = expirationTimeNew
+                end
                 local reaction = caster and UnitReaction("player", caster) or 0
                 local friendlySmokeBomb = id == 212183 and reaction > 4
                 local p = self:GetAuraPriority(id)
@@ -1526,6 +1533,11 @@ function BigDebuffs:UNIT_AURA(unit)
         _, n, _, _, d, e, caster, _, _, id = UnitBuff(unit, i)
         if id then
             if self.Spells[id] then
+                local durationNew, expirationTimeNew = LibClassicDurations:GetAuraDurationByUnit(unit, id, caster)
+                if d == 0 and durationNew then
+                    d = durationNew
+                    e = expirationTimeNew
+                end
                 local p = self:GetAuraPriority(id)
                 if p and p >= priority then
                     if p > priority or self:IsPriorityBigDebuff(id) or e == 0 or e - now > left then
