@@ -224,6 +224,9 @@ addon.Spells = {
         [14308] = { parent = 3355 },
         [14309] = { parent = 3355 },
     [19229] = { type = ROOT }, -- Wing Clip Root
+    [2974] = { type = ROOT }, -- Wing Clip
+        [14267] = { parent = 2974 },
+        [14268] = { parent = 2974 },
     [19306] = { type = ROOT }, -- Counterattack Root
         [20909] = { parent = 19306 },
         [20910] = { parent = 19306 },
