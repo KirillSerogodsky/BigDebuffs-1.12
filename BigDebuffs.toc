@@ -4,8 +4,7 @@
 ## Version: 1.3
 ## Author: Jordon, Tsoukie
 ## SavedVariables: BigDebuffsDB
-
-Compat.lua
+## RequiredDeps: !!!ClassicAPI
 
 #@no-lib-strip@
 Libs\LibStub\LibStub.lua
@@ -22,6 +21,7 @@ Libs\AceLocale-3.0\AceLocale-3.0.xml
 Libs\LibClassicDurations\LibClassicDurations.xml
 #@end-no-lib-strip@
 
+Environment.lua
 Locales\Locales.xml
 BigDebuffs.xml
 BigDebuffs_Vanilla.lua

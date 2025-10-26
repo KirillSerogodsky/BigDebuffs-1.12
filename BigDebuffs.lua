@@ -1,16 +1,9 @@
 -- BigDebuffs by Jordon
 
 local addonName, addon = BigDebuffsAddonName, BigDebuffsAddon
-local tgetn, sfind, sgsub = table.getn, string.find, string.gsub
 
 local UnitChannelInfo = C_UnitChannelInfo
 local GetSpellTexture = C_GetSpellTexture
-local GetSpellInfo = C_GetSpellInfo
-local IsUsableSpell = C_IsUsableSpell
-local UnitGUID = C_UnitGUID
-local InCombatLockdown = C_InCombatLockdown
-local CooldownFrame_Set = C_CooldownFrame_Set
-local CooldownFrame_Clear = C_CooldownFrame_Clear
 
 BigDebuffs = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0", "AceHook-3.0")
 local LibClassicDurations = LibStub("LibClassicDurations")
@@ -196,7 +189,7 @@ local units = addon.Units
 
 local unitsWithRaid = {}
 
-for i = 1, tgetn(units) do
+for i = 1, table.getn(units) do
     table.insert(unitsWithRaid, units[i])
 end
 
@@ -216,7 +209,8 @@ local GetAnchor = {
                 break
             end
         end
-        if unit and (sfind(unit, "party") or sfind(unit, "player")) then
+
+        if unit and (string.find(unit, "party") or string.find(unit, "player")) then
             local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local elvUIFrame = _G["ElvUF_PartyGroup1UnitButton" .. i]
@@ -228,7 +222,7 @@ local GetAnchor = {
             end
         end
 
-        if unit and (sfind(unit, "arena") or sfind(unit, "arena")) then
+        if unit and (string.find(unit, "arena") or string.find(unit, "arena")) then
             local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local elvUIFrame = _G["ElvUF_Arena" .. i]
@@ -253,7 +247,7 @@ local GetAnchor = {
             end
         end
 
-        if unit and (sfind(unit, "party") or sfind(unit, "player")) then
+        if unit and (string.find(unit, "party") or string.find(unit, "player")) then
             local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local oUFFrame = _G["oUF_PartyGroup1UnitButton" .. i]
@@ -266,7 +260,7 @@ local GetAnchor = {
             return
         end
 
-        if unit and (sfind(unit, "arena") or sfind(unit, "arena")) then
+        if unit and (string.find(unit, "arena") or string.find(unit, "arena")) then
             local unitGUID = UnitGUID(unit)
             for i = 1, 5, 1 do
                 local oUFFrame = _G["oUF_Arena" .. i]
@@ -328,7 +322,7 @@ local GetAnchor = {
             end
         end
 
-        if unit and (sfind(unit, "party") or sfind(unit, "player")) then
+        if unit and (string.find(unit, "party") or string.find(unit, "player")) then
             if Cell then
                 local guid = UnitGUID(unit)
                 local frame = Cell.funcs:GetUnitButtonByGUID(guid)
@@ -529,8 +523,8 @@ function BigDebuffs:OnInitialize()
             roots = self.db.profile.raidFrames.roots
         }
     end
-    for i = 1, tgetn(units) do
-        local key = sgsub(units[i], "%d", "")
+    for i = 1, table.getn(units) do
+        local key = string.gsub(units[i], "%d", "")
         if type(self.db.profile.unitFrames[key]) == "boolean" then
             self.db.profile.unitFrames[key] = {
                 enabled = self.db.profile.unitFrames[key],
@@ -579,7 +573,7 @@ end
 
 local function HideBigDebuffs(frame)
     if not frame.BigDebuffs then return end
-    for i = 1, tgetn(frame.BigDebuffs) do
+    for i = 1, table.getn(frame.BigDebuffs) do
         frame.BigDebuffs[i]:Hide()
     end
 end
@@ -628,7 +622,7 @@ function BigDebuffs:AttachUnitFrame(unit)
     frame.anchor = nil
     frame.blizzard = nil
 
-    local config = self.db.profile.unitFrames[sgsub(unit, "%d", "")]
+    local config = self.db.profile.unitFrames[string.gsub(unit, "%d", "")]
 
     if config.anchor == "auto" then
         -- Find a frame to attach to
@@ -665,7 +659,7 @@ function BigDebuffs:AttachUnitFrame(unit)
             frame:SetParent(parent)
             if unit == "player" then
                 frame:SetFrameLevel(parent:GetFrameLevel() + 1)
-            elseif sfind(unit, "party") then
+            elseif string.find(unit, "party") then
                 parent:SetFrameLevel(1) -- fix sometimes portrait has 2
                 frame:SetFrameLevel(parent:GetFrameLevel())
             else
@@ -870,7 +864,7 @@ function BigDebuffs:COMBAT_LOG_EVENT_UNFILTERED(Self, ...)
     if spellType ~= "interrupts" then return end
 
     -- Find unit
-    for i = 1, tgetn(unitsWithRaid) do
+    for i = 1, table.getn(unitsWithRaid) do
         local unit = unitsWithRaid[i]
         if destGUID == UnitGUID(unit) and (event ~= "SPELL_CAST_SUCCESS" or
             (UnitChannelInfo and select(7, UnitChannelInfo(unit)) == false))
@@ -895,14 +889,14 @@ end
 
 function BigDebuffs:UNIT_AURA_ALL_UNITS()
     local self = BigDebuffs
-    for i = 1, tgetn(unitsWithRaid) do
+    for i = 1, table.getn(unitsWithRaid) do
         local unit = unitsWithRaid[i]
 
         if self.AttachedFrames[unit] then
            self:ShowBigDebuffs(self.AttachedFrames[unit])
         end
 
-        if not sfind(unit, "^raid") then
+        if not string.find(unit, "^raid") then
             self:UNIT_AURA(unit)
         end
     end
@@ -1007,7 +1001,7 @@ function BigDebuffs:PLAYER_REGEN_ENABLED()
 end
 
 function BigDebuffs:IsPriorityDebuff(id)
-    for i = 1, tgetn(BigDebuffs.PriorityDebuffs) do
+    for i = 1, table.getn(BigDebuffs.PriorityDebuffs) do
         if id == BigDebuffs.PriorityDebuffs[i] then
             return true
         end
@@ -1396,7 +1390,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
             -- Set warning debuff
             if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
                 local k
-                for j = 1, tgetn(self.WarningDebuffs) do
+                for j = 1, table.getn(self.WarningDebuffs) do
                     if id == self.WarningDebuffs[j] and
                         self.db.profile.raidFrames.warningList[id] and
                         not friendlySmokeBomb and
@@ -1422,7 +1416,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
         end
     end
 
-    if tgetn(debuffs) > 0 then
+    if table.getn(debuffs) > 0 then
         -- insert the warning debuff if it exists and we have a big debuff
         if big and warning then
             local size = self.db.profile.raidFrames.warning
@@ -1459,7 +1453,7 @@ function BigDebuffs:ShowBigDebuffs(frame)
             CompactUnitFrame_HideAllDebuffs(frame)
         end
 
-        for i = 1, tgetn(debuffs) do
+        for i = 1, table.getn(debuffs) do
             if index <= self.db.profile.raidFrames.maxDebuffs or debuffs[i][1] == warning then
                 if not frame.BigDebuffs[index] then break end
                 frame.BigDebuffs[index].baseSize = frame:GetHeight() * debuffs[i][2] * 0.01
@@ -1480,10 +1474,10 @@ end
 
 function BigDebuffs:UNIT_AURA(unit)
     if not self.db.profile.unitFrames.enabled or
-        not self.db.profile.unitFrames[sgsub(unit, "%d", "")].enabled
+        not self.db.profile.unitFrames[string.gsub(unit, "%d", "")].enabled
     then
         return
-    elseif (GetNumPartyMembers() > 5 and sfind(unit, "party")) then
+    elseif (GetNumPartyMembers() > 5 and string.find(unit, "party")) then
         local frame = self.UnitFrames[unit]
         if ( frame and frame.current ) then
             frame:Hide()
@@ -1646,7 +1640,7 @@ function BigDebuffs:ADDON_LOADED(self, addon)
 end
 
 function BigDebuffs:PLAYER_ENTERING_WORLD()
-    for i = 1, tgetn(units) do
+    for i = 1, table.getn(units) do
         self:UNIT_AURA(units[i])
     end
 end

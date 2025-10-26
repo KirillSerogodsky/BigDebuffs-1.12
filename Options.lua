@@ -2,20 +2,17 @@ local BigDebuffs = LibStub("AceAddon-3.0"):GetAddon("BigDebuffs")
 local L = LibStub("AceLocale-3.0"):GetLocale("BigDebuffs")
 
 local GetSpellTexture = C_GetSpellTexture
-local GetSpellInfo = C_GetSpellInfo
-local Spell = C_Spell
-local tgetn = table.getn
 
 local WarningDebuffs = {}
 if WOW_PROJECT_ID ~= WOW_PROJECT_CLASSIC then
-    for i = 1, tgetn(BigDebuffs.WarningDebuffs) do
+    for i = 1, table.getn(BigDebuffs.WarningDebuffs) do
         local id = BigDebuffs.WarningDebuffs[i]
         local name = GetSpellInfo(id)
         WarningDebuffs[name] = {
             type = "toggle",
-            get = function(info) local key = info[tgetn(info)-2] return BigDebuffs.db.profile[key].warningList[id] end,
+            get = function(info) local key = info[table.getn(info)-2] return BigDebuffs.db.profile[key].warningList[id] end,
             set = function(info, value)
-                local key = info[tgetn(info)-2]
+                local key = info[table.getn(info)-2]
                 BigDebuffs.db.profile[key].warningList[id] = value BigDebuffs:Refresh()
             end,
             name = name,
@@ -64,11 +61,11 @@ for spellID, spell in pairs(BigDebuffs.Spells) do
         Spells[spell.type].args[key] = {
             type = "group",
             get = function(info)
-                local name = info[tgetn(info)]
+                local name = info[table.getn(info)]
                 return BigDebuffs.db.profile.spells[spellID] and BigDebuffs.db.profile.spells[spellID][name]
             end,
             set = function(info, value)
-                local name = info[tgetn(info)]
+                local name = info[table.getn(info)]
                 BigDebuffs.db.profile.spells[spellID] = BigDebuffs.db.profile.spells[spellID] or {}
                 BigDebuffs.db.profile.spells[spellID][name] = value
                 BigDebuffs:Refresh()
@@ -96,14 +93,14 @@ for spellID, spell in pairs(BigDebuffs.Spells) do
                     name = L["Visibility"],
                     inline = true,
                     get = function(info)
-                        local name = info[tgetn(info)]
+                        local name = info[table.getn(info)]
                         local value = (BigDebuffs.db.profile.spells[spellID] and
                             BigDebuffs.db.profile.spells[spellID][name]) or
                             (not BigDebuffs.Spells[spellID]["no"..name] and 1)
                         return value and value == 1
                     end,
                     set = function(info, value)
-                        local name = info[tgetn(info)]
+                        local name = info[table.getn(info)]
                         BigDebuffs.db.profile.spells[spellID] = BigDebuffs.db.profile.spells[spellID] or {}
                         value = value and 1 or 0
                         BigDebuffs.db.profile.spells[spellID][name] = value
@@ -184,7 +181,7 @@ for spellID, spell in pairs(BigDebuffs.Spells) do
                             type = "toggle",
                             order = 4,
                             set = function(info, value)
-                                local name = info[tgetn(info)]
+                                local name = info[table.getn(info)]
                                 BigDebuffs.db.profile.spells[spellID] = BigDebuffs.db.profile.spells[spellID] or {}
                                 BigDebuffs.db.profile.spells[spellID].customSize = value
                                 if not value then
@@ -206,7 +203,7 @@ for spellID, spell in pairs(BigDebuffs.Spells) do
                                     BigDebuffs.db.profile.raidFrames[string.lower(spell.type)]/100
                             end,
                             set = function(info, value)
-                                local name = info[tgetn(info)]
+                                local name = info[table.getn(info)]
                                 BigDebuffs.db.profile.spells[spellID] = BigDebuffs.db.profile.spells[spellID] or {}
                                 BigDebuffs.db.profile.spells[spellID][name] = value*100
                                 BigDebuffs:Refresh()
@@ -257,9 +254,9 @@ function BigDebuffs:SetupOptions()
             --     type = "group",
             --     disabled = function(info) return info[2] and not self.db.profile[info[1]].enabled end,
             --     order = 10,
-            --     get = function(info) local name = info[tgetn(info)] return self.db.profile.raidFrames[name] end,
+            --     get = function(info) local name = info[table.getn(info)] return self.db.profile.raidFrames[name] end,
             --     set = function(info, value)
-            --         local name = info[tgetn(info)]
+            --         local name = info[table.getn(info)]
             --         self.db.profile.raidFrames[name] = value
             --         self:Refresh()
             --     end,
@@ -349,11 +346,11 @@ function BigDebuffs:SetupOptions()
             --             inline = true,
             --             order = 20,
             --             get = function(info)
-            --                 local name = info[tgetn(info)]
+            --                 local name = info[table.getn(info)]
             --                 return self.db.profile.raidFrames[name]/100
             --             end,
             --             set = function(info, value)
-            --                 local name = info[tgetn(info)]
+            --                 local name = info[table.getn(info)]
             --                 self.db.profile.raidFrames[name] = value*100
             --                 self:Refresh()
             --             end,
@@ -368,11 +365,11 @@ function BigDebuffs:SetupOptions()
             --                     step = 0.01,
             --                     order = 1,
             --                     get = function(info)
-            --                         local name = info[tgetn(info)]
+            --                         local name = info[table.getn(info)]
             --                         return self.db.profile.raidFrames.dispellable.cc/100
             --                     end,
             --                     set = function(info, value)
-            --                         local name = info[tgetn(info)]
+            --                         local name = info[table.getn(info)]
             --                         self.db.profile.raidFrames.dispellable.cc = value*100
             --                         self:Refresh()
             --                     end,
@@ -397,11 +394,11 @@ function BigDebuffs:SetupOptions()
             --                     step = 0.01,
             --                     order = 4,
             --                     get = function(info)
-            --                         local name = info[tgetn(info)]
+            --                         local name = info[table.getn(info)]
             --                         return self.db.profile.raidFrames.dispellable.roots/100
             --                     end,
             --                     set = function(info, value)
-            --                         local name = info[tgetn(info)]
+            --                         local name = info[table.getn(info)]
             --                         self.db.profile.raidFrames.dispellable.roots= value*100
             --                         self:Refresh()
             --                     end,
@@ -474,11 +471,11 @@ function BigDebuffs:SetupOptions()
             --             type = "group",
             --             inline = true,
             --             get = function(info)
-            --                 local name = info[tgetn(info)]
+            --                 local name = info[table.getn(info)]
             --                 return self.db.profile.raidFrames.inRaid[name]
             --             end,
             --             set = function(info, value)
-            --                 local name = info[tgetn(info)]
+            --                 local name = info[table.getn(info)]
             --                 self.db.profile.raidFrames.inRaid[name] = value
             --                 self:Refresh()
             --             end,
@@ -514,9 +511,9 @@ function BigDebuffs:SetupOptions()
                 order = 20,
                 disabled = function(info) return info[2] and not self.db.profile[info[1]].enabled end,
                 childGroups = "tab",
-                get = function(info) local name = info[tgetn(info)] return self.db.profile.unitFrames[name] end,
+                get = function(info) local name = info[table.getn(info)] return self.db.profile.unitFrames[name] end,
                 set = function(info, value)
-                    local name = info[tgetn(info)]
+                    local name = info[table.getn(info)]
                     self.db.profile.unitFrames[name] = value
                     self:Refresh()
                 end,
@@ -550,11 +547,11 @@ function BigDebuffs:SetupOptions()
                                 (info[3] and not self.db.profile.unitFrames[info[2]].enabled)
                         end,
                         get = function(info)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             return self.db.profile.unitFrames.player[name]
                         end,
                         set = function(info, value)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             self.db.profile.unitFrames.player[name] = value
                             self:Refresh()
                         end,
@@ -689,11 +686,11 @@ function BigDebuffs:SetupOptions()
                                 (info[3] and not self.db.profile.unitFrames[info[2]].enabled)
                         end,
                         get = function(info)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             return self.db.profile.unitFrames.target[name]
                         end,
                         set = function(info, value)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             self.db.profile.unitFrames.target[name] = value
                             self:Refresh()
                         end,
@@ -829,11 +826,11 @@ function BigDebuffs:SetupOptions()
                                 (info[3] and not self.db.profile.unitFrames[info[2]].enabled)
                         end,
                         get = function(info)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             return self.db.profile.unitFrames.pet[name]
                         end,
                         set = function(info, value)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             self.db.profile.unitFrames.pet[name] = value
                             self:Refresh()
                         end,
@@ -969,11 +966,11 @@ function BigDebuffs:SetupOptions()
                                 (info[3] and not self.db.profile.unitFrames[info[2]].enabled)
                         end,
                         get = function(info)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             return self.db.profile.unitFrames.party[name]
                         end,
                         set = function(info, value)
-                            local name = info[tgetn(info)]
+                            local name = info[table.getn(info)]
                             self.db.profile.unitFrames.party[name] = value
                             self:Refresh()
                         end,
@@ -1219,11 +1216,11 @@ function BigDebuffs:SetupOptions()
                     (info[3] and not self.db.profile.unitFrames[info[2]].enabled)
             end,
             get = function(info)
-                local name = info[tgetn(info)]
+                local name = info[table.getn(info)]
                 return self.db.profile.unitFrames.focus[name]
             end,
             set = function(info, value)
-                local name = info[tgetn(info)] self.db.profile.unitFrames.focus[name] = value
+                local name = info[table.getn(info)] self.db.profile.unitFrames.focus[name] = value
                 self:Refresh()
             end,
             args = {
@@ -1361,11 +1358,11 @@ function BigDebuffs:SetupOptions()
                     (info[3] and not self.db.profile.unitFrames[info[2]].enabled)
             end,
             get = function(info)
-                local name = info[tgetn(info)]
+                local name = info[table.getn(info)]
                 return self.db.profile.unitFrames.arena[name]
             end,
             set = function(info, value)
-                local name = info[tgetn(info)]
+                local name = info[table.getn(info)]
                 self.db.profile.unitFrames.arena[name] = value
                 self:Refresh()
             end,
@@ -1499,8 +1496,8 @@ function BigDebuffs:SetupOptions()
     self.options.args.priority = {
         name = L["Priority"],
         type = "group",
-        get = function(info) local name = info[tgetn(info)] return self.db.profile.priority[name] end,
-        set = function(info, value) local name = info[tgetn(info)] self.db.profile.priority[name] = value self:Refresh() end,
+        get = function(info) local name = info[table.getn(info)] return self.db.profile.priority[name] end,
+        set = function(info, value) local name = info[table.getn(info)] self.db.profile.priority[name] = value self:Refresh() end,
         order = 30,
         args = {
             immunities = {

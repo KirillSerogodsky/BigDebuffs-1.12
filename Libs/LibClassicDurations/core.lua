@@ -68,10 +68,9 @@ local UNKNOWN_AURA_DURATION = 3600 -- 60m
 local BUFF_CACHE_EXPIRATION_TIME = 40
 
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
-local UnitGUID = C_UnitGUID
-local UnitAura = C_UnitAura
-local GetSpellInfo = C_GetSpellInfo
-local IsPlayerSpell = C_IsPlayerSpell
+local UnitGUID = UnitGUID
+local UnitAura = UnitAura
+local GetSpellInfo = GetSpellInfo
 local GetTime = GetTime
 local tinsert = table.insert
 local tgetn = table.getn

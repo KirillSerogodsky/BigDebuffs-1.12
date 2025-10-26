@@ -27,6 +27,7 @@ This is an addon designed to optimize your experience by hooking into unit frame
 
 > [!WARNING]
 > [SuperWoW](https://github.com/balakethelock/SuperWoW/releases) <code>Required</code>
+> [ClassicAPI](https://github.com/KirillSerogodsky/ClassicAPI-1.12) <code>Required</code>
 
 <br />
 

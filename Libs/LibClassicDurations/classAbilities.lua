@@ -7,7 +7,6 @@ if lib:GetDataVersion(Type) >= Version then return end  -- older versions didn't
 local Spell = lib.AddAura
 local Talent = lib.Talent
 local INFINITY = math.huge
-local GetSpellInfo = C_GetSpellInfo
 
 local _, class = UnitClass("player")
 local locale = GetLocale()

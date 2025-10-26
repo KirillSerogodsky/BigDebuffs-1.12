@@ -57,9 +57,9 @@
                     <Anchor point="CENTER" x="0" y="-1"/>
                 </Anchors>
                 <Scripts>
-                    <OnUpdateModel>
-                        C_CooldownFrame_OnUpdateModelReversed()
-                    </OnUpdateModel>
+                    <OnLoad>
+                        this.reverse = true
+                    </OnLoad>
                 </Scripts>
             </Model>            
         </Frames>
@@ -79,7 +79,7 @@
                 BigDebuffs:SaveUnitFramePosition(this)
             </OnDragStop>
             <OnUpdate>
-                if ( C_IsMouseOver(this) and BigDebuffs.db.profile.unitFrames.tooltips ) then
+                if ( IsMouseOver(this) and BigDebuffs.db.profile.unitFrames.tooltips ) then
 					GameTooltip:SetOwner(this, "ANCHOR_RIGHT", 0, 0);
 					if this.interrupt then
 						-- TODO GameTooltip:SetSpellByID(this.interrupt)
