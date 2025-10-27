@@ -511,186 +511,7 @@ local lastResistTime = 0
 local playerName = UnitName("player")
 
 function f:RAW_COMBATLOG()
-    local event, text = string.gsub(arg1, "CHAT_MSG_SPELL_", ""), arg2
-
-    local timestamp = GetTime()
-    local eventType = nil
-    local hideCaster = nil
-    local srcGUID = nil
-    local srcName = nil
-    local srcFlags = nil
-    local srcFlags2 = nil
-    local dstGUID = nil
-    local dstName = nil
-    local dstFlags = nil
-    local dstFlags2 = nil
-    local spellID = 0
-    local spellName = nil
-    local spellSchool = nil
-    local auraType = nil
-    local isCrit = nil
-
-    if event == "PERIODIC_SELF_BUFFS"
-        and string.find(text, "from") == nil then
-        local _, _, spell = string.find(text, "You gain (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = UnitGUID("player")
-        srcName = playerName
-        dstGUID = srcGUID
-        dstName = srcName
-        dstFlags = COMBATLOG_OBJECT_TYPE_PLAYER
-        auraType = "BUFF"
-        spellName = spell
-    elseif event == "PERIODIC_SELF_DAMAGE"
-        and string.find(text, "from") == nil then
-        local _, _, spell = string.find(text, "You are afflicted by (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = UnitGUID("player")
-        srcName = playerName
-        dstGUID = srcGUID
-        dstName = srcName
-        dstFlags = COMBATLOG_OBJECT_TYPE_PLAYER
-        auraType = "DEBUFF"
-        spellName = spell
-    elseif event == "PERIODIC_FRIENDLYPLAYER_BUFFS"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) gains (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = COMBATLOG_OBJECT_REACTION_FRIENDLY
-        auraType = "BUFF"
-        spellName = spell
-    elseif event == "PERIODIC_FRIENDLYPLAYER_DAMAGE"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) is afflicted by (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = COMBATLOG_OBJECT_REACTION_FRIENDLY
-        auraType = "DEBUFF"
-        spellName = spell
-    elseif event == "PERIODIC_CREATURE_BUFFS"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) gains (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        auraType = "BUFF"
-        dstFlags = 0
-        spellName = spell
-    elseif event == "PERIODIC_CREATURE_DAMAGE"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) is afflicted by (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = 0
-        auraType = "DEBUFF"
-        spellName = spell
-    elseif event == "PERIODIC_HOSTILEPLAYER_BUFFS"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) gains (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = 0
-        auraType = "BUFF"
-        spellName = spell
-    elseif event == "PERIODIC_HOSTILEPLAYER_DAMAGE"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) is afflicted by (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = 0
-        auraType = "DEBUFF"
-        spellName = spell
-    elseif event == "AURA_GONE_SELF" then
-        local _, _, spell = string.find(text, "(.+) fades from you.")
-        eventType = "SPELL_AURA_REMOVED"
-        srcGUID = UnitGUID("player")
-        srcName = playerName
-        dstGUID = srcGUID
-        dstName = srcName
-        dstFlags = COMBATLOG_OBJECT_TYPE_PLAYER
-        auraType = "BUFF"
-        spellName = spell
-    elseif event == "AURA_GONE_OTHER" then
-        local _, _, spell, unit = string.find(text, "(.+) fades from (.+)%.")
-        eventType = "SPELL_AURA_REMOVED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = 0
-        auraType = "BUFF"
-        spellName = spell
-    elseif event == "PERIODIC_PARTY_BUFFS"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) gains (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = COMBATLOG_OBJECT_REACTION_FRIENDLY
-        auraType = "BUFF"
-        spellName = spell
-    elseif event == "PERIODIC_PARTY_DAMAGE"
-        and string.find(text, "from") == nil then
-        local _, _, unit, spell = string.find(text, "(.+) is afflicted by (.+)%.")
-        eventType = "SPELL_AURA_APPLIED"
-        srcGUID = unit
-        srcName = UnitName(unit)
-        dstGUID = unit
-        dstName = srcName
-        dstFlags = COMBATLOG_OBJECT_REACTION_FRIENDLY
-        auraType = "DEBUFF"
-        spellName = spell
-    else
-        return
-    end
-
-    if spellName ~= nil then
-        --print(event, dstName, spellName)
-    end
-
-    f:CombatLogHandler(
-        timestamp,
-        eventType,
-        hideCaster,
-        srcGUID,
-        srcName,
-        srcFlags,
-        srcFlags2,
-        dstGUID,
-        dstName,
-        dstFlags,
-        dstFlags2,
-        spellID,
-        spellName,
-        spellSchool,
-        auraType,
-        nil,
-        nil,
-        nil,
-        nil,
-        nil,
-        isCrit
-    )
+    f:CombatLogHandler(CombatLogGetCurrentEventInfo())
 end
 
 local rollbackTable = setmetatable({}, { __mode="v" })
@@ -1241,7 +1062,7 @@ function lib:ToggleDebug()
         end)
     end
     if not lib.debug.enabled then
-        lib.debug:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+        lib.debug:RegisterEvent("RAW_COMBATLOG")
         lib.debug.enabled = true
         print("[LCD] Enabled combat log event display")
     else
@@ -1266,7 +1087,7 @@ function lib:MonitorUnit(unit)
         end)
     end
     if not lib.debug.enabled then
-        lib.debug:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+        lib.debug:RegisterEvent("RAW_COMBATLOG")
         lib.debug.enabled = true
         print("[LCD] Enabled combat log event display")
     else
