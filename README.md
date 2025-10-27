@@ -18,16 +18,17 @@ This is an addon designed to optimize your experience by hooking into unit frame
 
 <kbd>/bd</kbd>
 
-#### ⋮ Known issues
+#### ⋮ KNOWN ISSUES
 
-- Add-on settings may cause the game to freeze (Spell tab)
-- Elements in the add-on settings may be misaligned
+- Addon settings may cause the game to freeze (mostly in the Spell tab)
+- Elements in the addon settings may be misaligned
+- After entering to the world for the first time, need to /reload manually to work the cooldowns (SuperWoW issue)
+- No cooldowns for NPC abilities (SuperWoW combat log currently does not return SpellID)
+- Spell cooldown is always at its maximum rank (SuperWoW combat log currently does not return SpellID)
 
-<br />
-
-> [!WARNING]
-> [SuperWoW](https://github.com/balakethelock/SuperWoW/releases) <code>Required</code>
-> [ClassicAPI](https://github.com/KirillSerogodsky/ClassicAPI-1.12) <code>Required</code>
+#### ⋮ DEPENDENCIES
+- [SuperWoW](https://github.com/balakethelock/SuperWoW/releases) <code>Required</code>
+- [ClassicAPI](https://github.com/KirillSerogodsky/ClassicAPI-1.12) <code>Required</code>
 
 <br />
 
