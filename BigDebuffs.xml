@@ -59,6 +59,8 @@
                 <Scripts>
                     <OnLoad>
                         this.reverse = true
+                        this.SetSwipeColor = SetSwipeColor
+                        this.SetHideCountdownNumbers = function() end
                     </OnLoad>
                 </Scripts>
             </Model>            

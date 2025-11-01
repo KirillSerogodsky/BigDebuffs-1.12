@@ -586,8 +586,8 @@ function BigDebuffs:Refresh()
     for unit, frame in pairs(self.UnitFrames) do
         frame:Hide()
         frame.current = nil
-        -- TODO frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
-        -- TODO frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
+        frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
+        frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
         self:UNIT_AURA(unit)
     end
 end
@@ -602,8 +602,8 @@ function BigDebuffs:AttachUnitFrame(unit)
         frame = CreateFrame("Button", frameName, UIParent, "BigDebuffsUnitFrameTemplate")
         self.UnitFrames[unit] = frame
         frame:SetScript("OnEvent", function() if (arg1 == unit) then self:UNIT_AURA(arg1) end end)
-        -- TODO frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
-        -- TODO frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
+        frame.cooldown:SetHideCountdownNumbers(not self.db.profile.unitFrames.cooldownCount)
+        frame.cooldown.noCooldownCount = not self.db.profile.unitFrames.cooldownCount
         frame.icon:SetDrawLayer("BORDER")
         frame:RegisterEvent("UNIT_AURA")
         frame:RegisterForDrag("LeftButton")
@@ -1592,7 +1592,7 @@ function BigDebuffs:UNIT_AURA(unit)
 
         CooldownFrame_Set(frame.cooldown, expires - duration, duration, true)
         frame:Show()
-        --frame.cooldown:SetSwipeColor(0, 0, 0, 0.6)
+        frame.cooldown:SetSwipeColor(0, 0, 0, 0.6)
 
         -- set for tooltips
         frame:SetID(debuff)

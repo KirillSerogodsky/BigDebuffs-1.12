@@ -563,11 +563,10 @@ end
 local igniteName = GetSpellInfo(12654)
 do
     local igniteOpts = { duration = 4 }
-    function f:IgniteHandler()
-        local timestamp, eventType, hideCaster,
+    function f:IgniteHandler(timestamp, eventType, hideCaster,
         srcGUID, srcName, srcFlags, srcFlags2,
         dstGUID, dstName, dstFlags, dstFlags2,
-        spellID, spellName, spellSchool, auraType, _, _, _, _, _, isCrit = unpack(arg)
+        spellID, spellName, spellSchool, auraType, _, _, _, _, _, isCrit)
 
         spellID = 12654
         local opts = igniteOpts
@@ -597,8 +596,8 @@ do
     -- if playerClass ~= "MAGE" then
         -- f.IgniteHandler = function() end
     -- end
-    function lib:GetSpellTable()
-        return GetSpellTable(unpack(arg))
+    function lib:GetSpellTable(srcGUID, dstGUID, spellID)
+        return GetSpellTable(srcGUID, dstGUID, spellID)
     end
 end
 
@@ -609,7 +608,10 @@ function f:CombatLogHandler(timestamp, eventType, hideCaster,
     ProcIndirectRefresh(eventType, spellName, srcGUID, srcFlags, dstGUID, dstFlags, dstName, isCrit)
 
     if spellName == igniteName then
-        --self:IgniteHandler(unpack(arg))
+        f:IgniteHandler(timestamp, eventType, hideCaster,
+            srcGUID, srcName, srcFlags, srcFlags2,
+            dstGUID, dstName, dstFlags, dstFlags2,
+            spellID, spellName, spellSchool, auraType, _, _, _, _, _, isCrit)
     end
 
     if  eventType == "SPELL_MISSED" and
@@ -882,15 +884,15 @@ function lib.UnitAuraDirect(unit, index, filter)
     end
 end
 
-function lib.UnitAuraWithBuffs()
+function lib.UnitAuraWithBuffs(...)
     return lib.UnitAuraDirect(unpack(arg))
 end
 
-function lib.UnitAuraWrapper(unit)
+function lib.UnitAuraWrapper(unit, ...)
     return lib.FillInDuration(unit, UnitAura(unit, unpack(arg)))
 end
 
-function lib:UnitAura()
+function lib:UnitAura(...)
     return self.UnitAuraDirect(unpack(arg))
 end
 
